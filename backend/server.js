@@ -20,7 +20,12 @@ app.use(helmet({
 
 // CORS configuration
 const corsOptions = {
-    origin: process.env.CORS_ORIGIN || ['http://localhost:3000', 'http://127.0.0.1:5500'],
+    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : [
+        'http://localhost:3000', 
+        'http://127.0.0.1:5500',
+        'https://incodeacademy.netlify.app',
+        'https://mellow-flan-25d5dd.netlify.app'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
