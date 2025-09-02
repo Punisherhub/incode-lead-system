@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Incode Academy Leads</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .header h1 {
+            color: #00d4ff;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.2);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #00d4ff;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.8;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .search-box, .filter-select {
+            padding: 12px 16px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            backdrop-filter: blur(10px);
+        }
+        
+        .search-box::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .refresh-btn {
+            padding: 12px 24px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .refresh-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .leads-table {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .table-header {
+            background: rgba(0, 212, 255, 0.2);
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr;
+            gap: 15px;
+            font-weight: bold;
+            border-bottom: 2px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .table-row {
+            padding: 15px 20px;
+            display: grid;
+            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr;
+            gap: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            transition: background 0.3s ease;
+            align-items: center;
+        }
+        
+        .table-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .lead-id {
+            font-weight: bold;
+            color: #00d4ff;
+            text-align: center;
+        }
+        
+        .lead-name {
+            font-weight: 600;
+        }
+        
+        .lead-email {
+            color: #ffd700;
+        }
+        
+        .lead-phone {
+            color: #90EE90;
+        }
+        
+        .lead-age {
+            text-align: center;
+        }
+        
+        .lead-course {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .lead-date {
+            font-size: 0.85rem;
+            opacity: 0.7;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .status-novo {
+            background: rgba(0, 212, 255, 0.2);
+            color: #00d4ff;
+            border: 1px solid #00d4ff;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            font-size: 1.2rem;
+        }
+        
+        .loading::after {
+            content: '';
+            animation: dots 2s infinite;
+        }
+        
+        @keyframes dots {
+            0% { content: ''; }
+            25% { content: '.'; }
+            50% { content: '..'; }
+            75% { content: '...'; }
+            100% { content: ''; }
+        }
+        
+        @media (max-width: 768px) {
+            .table-header, .table-row {
+                grid-template-columns: 1fr;
+                text-align: left;
+            }
+            
+            .table-header > div:not(:first-child),
+            .table-row > div:not(:first-child) {
+                margin-left: 0;
+            }
+        }
+        
+        .error-message {
+            background: rgba(255, 0, 0, 0.1);
+            color: #ff6b6b;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 INCODE ACADEMY</h1>
+            <p>Painel Administrativo - Gestão de Leads</p>
+        </div>
+        
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-number" id="totalLeads">-</div>
+                <div class="stat-label">Total de Leads</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="todayLeads">-</div>
+                <div class="stat-label">Leads Hoje</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="weekLeads">-</div>
+                <div class="stat-label">Leads esta Semana</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="monthLeads">-</div>
+                <div class="stat-label">Leads este Mês</div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar por nome ou email...">
+            <select class="filter-select" id="courseFilter">
+                <option value="">📚 Todos os cursos</option>
+            </select>
+            <button class="refresh-btn" id="refreshBtn">🔄 Atualizar Dados</button>
+        </div>
+        
+        <div class="leads-table">
+            <div class="table-header">
+                <div>ID</div>
+                <div>👤 Nome</div>
+                <div>📧 Email</div>
+                <div>📱 Telefone</div>
+                <div>🎂 Idade</div>
+                <div>📚 Curso</div>
+                <div>📅 Data</div>
+            </div>
+            <div id="leadsContainer">
+                <div class="loading">Carregando leads</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://incode-lead-system-production.up.railway.app/api';
+        
+        let allLeads = [];
+        let filteredLeads = [];
+        
+        // Elementos do DOM
+        const totalLeadsEl = document.getElementById('totalLeads');
+        const todayLeadsEl = document.getElementById('todayLeads');
+        const weekLeadsEl = document.getElementById('weekLeads');
+        const monthLeadsEl = document.getElementById('monthLeads');
+        const searchBox = document.getElementById('searchBox');
+        const courseFilter = document.getElementById('courseFilter');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const leadsContainer = document.getElementById('leadsContainer');
+        
+        // Função para carregar estatísticas
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/leads/stats`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.data;
+                    totalLeadsEl.textContent = stats.total;
+                    todayLeadsEl.textContent = stats.hoje;
+                    weekLeadsEl.textContent = stats.semana;
+                    monthLeadsEl.textContent = stats.mes;
+                    
+                    // Atualizar filtro de cursos
+                    updateCourseFilter(stats.por_curso);
+                }
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+        
+        // Função para carregar leads
+        async function loadLeads() {
+            try {
+                leadsContainer.innerHTML = '<div class="loading">Carregando leads</div>';
+                
+                const response = await fetch(`${API_BASE}/leads?limit=100`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    allLeads = data.data;
+                    filteredLeads = [...allLeads];
+                    renderLeads();
+                } else {
+                    throw new Error(data.error || 'Erro desconhecido');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar leads:', error);
+                leadsContainer.innerHTML = `
+                    <div class="error-message">
+                        ❌ Erro ao carregar leads: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        // Função para renderizar leads
+        function renderLeads() {
+            if (filteredLeads.length === 0) {
+                leadsContainer.innerHTML = '<div class="loading">Nenhum lead encontrado</div>';
+                return;
+            }
+            
+            const leadsHTML = filteredLeads.map(lead => `
+                <div class="table-row">
+                    <div class="lead-id">#${lead.id}</div>
+                    <div class="lead-name">${lead.nome}</div>
+                    <div class="lead-email">${lead.email}</div>
+                    <div class="lead-phone">${lead.telefone}</div>
+                    <div class="lead-age">${lead.idade}</div>
+                    <div class="lead-course">${lead.curso}</div>
+                    <div class="lead-date">${formatDate(lead.data_criacao)}</div>
+                </div>
+            `).join('');
+            
+            leadsContainer.innerHTML = leadsHTML;
+        }
+        
+        // Função para atualizar filtro de cursos
+        function updateCourseFilter(courses) {
+            const currentValue = courseFilter.value;
+            courseFilter.innerHTML = '<option value="">📚 Todos os cursos</option>';
+            
+            courses.forEach(course => {
+                const option = document.createElement('option');
+                option.value = course.curso;
+                option.textContent = `${course.curso} (${course.count})`;
+                courseFilter.appendChild(option);
+            });
+            
+            courseFilter.value = currentValue;
+        }
+        
+        // Função para formatar data
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('pt-BR') + ' ' + 
+                   date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+        }
+        
+        // Função de busca
+        function filterLeads() {
+            const searchTerm = searchBox.value.toLowerCase();
+            const selectedCourse = courseFilter.value;
+            
+            filteredLeads = allLeads.filter(lead => {
+                const matchesSearch = !searchTerm || 
+                    lead.nome.toLowerCase().includes(searchTerm) ||
+                    lead.email.toLowerCase().includes(searchTerm);
+                    
+                const matchesCourse = !selectedCourse || lead.curso === selectedCourse;
+                
+                return matchesSearch && matchesCourse;
+            });
+            
+            renderLeads();
+        }
+        
+        // Event listeners
+        searchBox.addEventListener('input', filterLeads);
+        courseFilter.addEventListener('change', filterLeads);
+        refreshBtn.addEventListener('click', () => {
+            loadStats();
+            loadLeads();
+        });
+        
+        // Carregar dados iniciais
+        loadStats();
+        loadLeads();
+        
+        // Auto refresh a cada 30 segundos
+        setInterval(() => {
+            loadStats();
+            loadLeads();
+        }, 30000);
+    </script>
+</body>
+</html>
