@@ -1,0 +1,87 @@
+# Configuração do Netlify para Incode Academy Lead System
+
+[build]
+  # Diretório de build (frontend)
+  publish = "frontend"
+  
+  # Comando de build (se necessário)
+  command = "echo 'Frontend ready for deployment'"
+
+[build.environment]
+  # Variáveis de ambiente para build
+  NODE_VERSION = "18"
+
+# Redirects para SPA
+[[redirects]]
+  from = "/api/*"
+  to = "https://incode-lead-api.railway.app/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Headers de segurança
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=()"
+
+# Headers para recursos estáticos (cache)
+[[headers]]
+  for = "/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+
+# Headers para API calls
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, PUT, DELETE, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+# Edge functions (se necessário no futuro)
+# [functions]
+#   directory = "netlify/functions"
+
+# Plugin para otimizações
+[plugins]
+  package = "netlify-plugin-minify-html"
+  
+    [plugins.inputs]
+      contexts = ["production"]
+
+# Configurações de formulários (desabilitado - usamos API própria)
+[build.processing]
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = true
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+[build.processing.images]
+  compress = true

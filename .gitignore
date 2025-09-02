@@ -1,0 +1,1 @@
+node_modules/\n.env\n*.log\nbackend/logs/\nbackend/database/*.db\n.DS_Store
