@@ -1,12 +1,1 @@
-node_modules/
-.env
-*.log
-backend/logs/
-backend/database/*.db
-backend/database/leads.db
-.DS_Store
-
-# Banco de dados SQLite (não versionar em produção)
-*.db
-*.sqlite
-*.sqlite3
+node_modules/\n.env\n*.log\nbackend/logs/\nbackend/database/*.db\n.DS_Store
