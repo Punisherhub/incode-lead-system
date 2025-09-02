@@ -18,7 +18,13 @@ class IncodeThreeScene {
         this.frameRate = this.isMobile ? 30 : 60; // FPS adaptativo
         this.frameInterval = 1000 / this.frameRate;
         
+        // Input focus control for mobile
+        this.isInputFocused = false;
+        this.isKeyboardOpen = false;
+        this.originalViewportHeight = window.innerHeight;
+        
         this.init();
+        this.setupInputFocusListeners();
         this.animate();
         this.addEventListeners();
     }
@@ -42,6 +48,126 @@ class IncodeThreeScene {
         }
         
         return this.isMobile || navigator.hardwareConcurrency < 4;
+    }
+    
+    setupInputFocusListeners() {
+        if (!this.isMobile) return; // Só ativo no mobile
+        
+        // Detectar todos os inputs, textareas e selects (incluindo os criados dinamicamente)
+        const addListenersToInputs = () => {
+            const inputs = document.querySelectorAll('input, textarea, select');
+            
+            inputs.forEach(input => {
+                // Evitar adicionar listeners duplicados
+                if (input.dataset.threeJsListener) return;
+                input.dataset.threeJsListener = 'true';
+                
+                input.addEventListener('focus', () => {
+                    this.isInputFocused = true;
+                    this.handleInputFocus();
+                });
+                
+                input.addEventListener('blur', () => {
+                    // Delay para evitar flickering entre campos
+                    setTimeout(() => {
+                        if (!document.activeElement || 
+                            !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+                            this.isInputFocused = false;
+                            this.handleInputBlur();
+                        }
+                    }, 100);
+                });
+            });
+        };
+        
+        // Executar imediatamente
+        addListenersToInputs();
+        
+        // Observar mudanças no DOM para novos inputs
+        const observer = new MutationObserver(addListenersToInputs);
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+        
+        // Detectar abertura do teclado virtual via mudança de viewport
+        window.addEventListener('resize', () => {
+            const currentHeight = window.innerHeight;
+            const heightDifference = this.originalViewportHeight - currentHeight;
+            
+            // Se a altura diminuiu mais que 150px, provavelmente teclado abriu
+            this.isKeyboardOpen = heightDifference > 150;
+            
+            if (this.isKeyboardOpen && this.isMobile) {
+                this.handleKeyboardOpen();
+            } else if (!this.isKeyboardOpen) {
+                this.handleKeyboardClose();
+            }
+        });
+    }
+    
+    handleInputFocus() {
+        console.log('📱 Input focused - Reducing animations');
+        // Reduzir animações drasticamente durante digitação
+        this.animationSpeed *= 0.1; // 90% mais lento
+        this.frameRate = 15; // Reduzir para 15 FPS
+        this.frameInterval = 1000 / this.frameRate;
+        
+        // Parar animações mais pesadas
+        if (this.particles) {
+            this.particles.visible = false;
+        }
+        
+        // Reduzir opacidade do container 3D
+        const container = document.getElementById('threejs-container');
+        if (container) {
+            container.style.opacity = '0.2';
+            container.style.transition = 'opacity 0.3s ease';
+        }
+    }
+    
+    handleInputBlur() {
+        console.log('📱 Input blurred - Restoring animations');
+        // Restaurar velocidade normal
+        this.animationSpeed = this.isMobile ? 0.3 : 0.5;
+        this.frameRate = this.isMobile ? 30 : 60;
+        this.frameInterval = 1000 / this.frameRate;
+        
+        // Mostrar partículas novamente
+        if (this.particles) {
+            this.particles.visible = true;
+        }
+        
+        // Restaurar opacidade
+        const container = document.getElementById('threejs-container');
+        if (container) {
+            container.style.opacity = '1';
+        }
+    }
+    
+    handleKeyboardOpen() {
+        console.log('⌨️ Virtual keyboard opened');
+        // Parar completamente as animações quando teclado está aberto
+        this.frameRate = 5; // Quase parado
+        this.frameInterval = 1000 / this.frameRate;
+        
+        // Esconder o renderer 3D completamente
+        if (this.renderer && this.renderer.domElement) {
+            this.renderer.domElement.style.display = 'none';
+        }
+    }
+    
+    handleKeyboardClose() {
+        console.log('⌨️ Virtual keyboard closed');
+        // Restaurar se não estiver em input
+        if (!this.isInputFocused) {
+            this.frameRate = this.isMobile ? 30 : 60;
+            this.frameInterval = 1000 / this.frameRate;
+            
+            if (this.renderer && this.renderer.domElement) {
+                this.renderer.domElement.style.display = 'block';
+            }
+        }
     }
     
     init() {
@@ -277,6 +403,11 @@ class IncodeThreeScene {
         
         // Controle de FPS para melhor performance
         if (currentTime - this.lastTime < this.frameInterval) {
+            return;
+        }
+        
+        // Parar animações se teclado virtual está aberto
+        if (this.isKeyboardOpen && this.isMobile) {
             return;
         }
         
