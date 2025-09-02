@@ -234,13 +234,137 @@
             margin: 20px 0;
             border: 1px solid rgba(255, 0, 0, 0.3);
         }
+        
+        /* Login Screen Styles */
+        .login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        
+        .login-container {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+        
+        .login-header h1 {
+            color: #00d4ff;
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        
+        .login-header p {
+            opacity: 0.8;
+            margin-bottom: 30px;
+        }
+        
+        .login-form .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .login-form input {
+            padding: 15px 20px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 16px;
+            outline: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+        
+        .login-form input:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .login-form input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .login-form button {
+            padding: 15px 30px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .login-form button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+        }
+        
+        .logout-btn {
+            padding: 8px 16px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            border-radius: 8px;
+            color: #ff6b6b;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .logout-btn:hover {
+            background: rgba(255, 0, 0, 0.3);
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <!-- Tela de Login -->
+    <div id="loginScreen" class="login-screen">
+        <div class="login-container">
+            <div class="login-header">
+                <h1>🔐 ACESSO RESTRITO</h1>
+                <p>Incode Academy - Painel Administrativo</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <input type="password" id="passwordInput" placeholder="Digite a senha de administrador" required>
+                    <button type="submit">Entrar</button>
+                </div>
+                <div id="loginError" class="error-message" style="display: none;">
+                    ❌ Senha incorreta! Tente novamente.
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Painel Principal -->
+    <div id="mainPanel" class="container" style="display: none;">
         <div class="header">
-            <h1>🎓 INCODE ACADEMY</h1>
-            <p>Painel Administrativo - Gestão de Leads</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>🎓 INCODE ACADEMY</h1>
+                    <p>Painel Administrativo - Gestão de Leads</p>
+                </div>
+                <button id="logoutBtn" class="logout-btn">🚪 Sair</button>
+            </div>
         </div>
         
         <div class="stats-grid" id="statsGrid">
@@ -287,10 +411,13 @@
     </div>
 
     <script>
+        // Configuração
         const API_BASE = 'https://incode-lead-system-production.up.railway.app/api';
+        const ADMIN_PASSWORD = 'incode2024'; // Altere esta senha!
         
         let allLeads = [];
         let filteredLeads = [];
+        let isLoggedIn = false;
         
         // Elementos do DOM
         const totalLeadsEl = document.getElementById('totalLeads');
@@ -418,15 +545,100 @@
             loadLeads();
         });
         
-        // Carregar dados iniciais
-        loadStats();
-        loadLeads();
+        // Carregar dados iniciais apenas se logado
+        // (removido - agora só carrega após login)
         
         // Auto refresh a cada 30 segundos
         setInterval(() => {
+            if (isLoggedIn) {
+                loadStats();
+                loadLeads();
+            }
+        }, 30000);
+        
+        // Funções de autenticação
+        const loginScreen = document.getElementById('loginScreen');
+        const mainPanel = document.getElementById('mainPanel');
+        const loginForm = document.getElementById('loginForm');
+        const passwordInput = document.getElementById('passwordInput');
+        const loginError = document.getElementById('loginError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        
+        // Verificar se já está logado (sessionStorage)
+        function checkAuth() {
+            const savedAuth = sessionStorage.getItem('incode_admin_auth');
+            if (savedAuth === 'true') {
+                showMainPanel();
+            }
+        }
+        
+        // Mostrar painel principal
+        function showMainPanel() {
+            isLoggedIn = true;
+            loginScreen.style.display = 'none';
+            mainPanel.style.display = 'block';
+            sessionStorage.setItem('incode_admin_auth', 'true');
+            
+            // Carregar dados
             loadStats();
             loadLeads();
-        }, 30000);
+        }
+        
+        // Mostrar tela de login
+        function showLoginScreen() {
+            isLoggedIn = false;
+            loginScreen.style.display = 'flex';
+            mainPanel.style.display = 'none';
+            sessionStorage.removeItem('incode_admin_auth');
+            passwordInput.value = '';
+            loginError.style.display = 'none';
+        }
+        
+        // Event listeners de autenticação
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const password = passwordInput.value.trim();
+            
+            if (password === ADMIN_PASSWORD) {
+                showMainPanel();
+            } else {
+                loginError.style.display = 'block';
+                passwordInput.value = '';
+                
+                // Esconder erro após 3 segundos
+                setTimeout(() => {
+                    loginError.style.display = 'none';
+                }, 3000);
+            }
+        });
+        
+        logoutBtn.addEventListener('click', () => {
+            if (confirm('Tem certeza que deseja sair do painel administrativo?')) {
+                showLoginScreen();
+            }
+        });
+        
+        // Auto logout após 30 minutos de inatividade
+        let inactivityTimer;
+        
+        function resetInactivityTimer() {
+            clearTimeout(inactivityTimer);
+            if (isLoggedIn) {
+                inactivityTimer = setTimeout(() => {
+                    alert('Sessão expirada por inatividade. Faça login novamente.');
+                    showLoginScreen();
+                }, 30 * 60 * 1000); // 30 minutos
+            }
+        }
+        
+        // Eventos para detectar atividade
+        ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
+            document.addEventListener(event, resetInactivityTimer, true);
+        });
+        
+        // Inicialização
+        checkAuth();
+        resetInactivityTimer();
     </script>
 </body>
 </html>
