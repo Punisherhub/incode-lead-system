@@ -1,6 +1,6 @@
 const express = require('express');
 const Lead = require('../models/Lead');
-const { getDatabaseStats } = require('../database/init');
+// Não importar getDatabaseStats aqui, será usado condicionalmente
 const router = express.Router();
 
 // Middleware para capturar IP e User-Agent
@@ -117,17 +117,11 @@ router.get('/', async (req, res) => {
 // GET /api/leads/stats - Obter estatísticas
 router.get('/stats', async (req, res) => {
     try {
-        const [leadStats, dbStats] = await Promise.all([
-            Lead.getStats(),
-            getDatabaseStats()
-        ]);
+        const leadStats = await Lead.getStats();
         
         res.json({
             success: true,
-            data: {
-                ...leadStats,
-                database: dbStats
-            },
+            data: leadStats,
             timestamp: new Date().toISOString()
         });
         
@@ -393,30 +387,8 @@ router.delete('/:id', async (req, res) => {
             });
         }
         
-        // Remover lead do banco
-        const { getDatabase } = require('../database/init');
-        const db = getDatabase();
-        
-        const result = await new Promise((resolve, reject) => {
-            db.run('DELETE FROM leads WHERE id = ?', [leadId], function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve({ 
-                        deletedRows: this.changes,
-                        leadData: lead
-                    });
-                }
-            });
-        });
-        
-        if (result.deletedRows === 0) {
-            return res.status(404).json({
-                success: false,
-                error: 'Lead não encontrado ou já foi removido',
-                code: 'LEAD_NOT_FOUND'
-            });
-        }
+        // Remover lead do banco usando o método do modelo
+        await Lead.delete(leadId);
         
         console.log(`✅ Lead removido: ${lead.nome} (${lead.email})`);
         
