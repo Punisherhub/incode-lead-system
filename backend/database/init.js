@@ -2,8 +2,12 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 
-// Caminho para o banco de dados
-const DB_PATH = process.env.DATABASE_PATH || path.join(__dirname, 'leads.db');
+// Caminho para o banco de dados - usar diretório persistente em produção
+const DB_PATH = process.env.DATABASE_PATH || 
+    (process.env.NODE_ENV === 'production' 
+        ? '/app/data/leads.db'  // Caminho persistente no Railway
+        : path.join(__dirname, 'leads.db')  // Local para desenvolvimento
+    );
 
 // Garantir que o diretório existe
 const dbDir = path.dirname(DB_PATH);
