@@ -366,62 +366,77 @@ async function sendToN8N(leadId, leadData) {
     }
 }
 
-// ENDPOINT TEMPORÁRIO PARA LIMPEZA (REMOVER DEPOIS)
-router.delete('/admin/clear-test-data', async (req, res) => {
+
+// DELETE /api/leads/:id - Remover lead específico
+router.delete('/:id', async (req, res) => {
     try {
-        // Verificar se é ambiente de desenvolvimento ou se tem permissão
-        const adminKey = req.headers['x-admin-key'];
-        if (adminKey !== 'incode2025-clear-db') {
-            return res.status(403).json({
+        const leadId = parseInt(req.params.id);
+        
+        if (isNaN(leadId)) {
+            return res.status(400).json({
                 success: false,
-                error: 'Acesso negado. Chave de administrador inválida.',
-                code: 'ADMIN_ACCESS_DENIED'
+                error: 'ID do lead deve ser um número',
+                code: 'INVALID_LEAD_ID'
             });
         }
         
-        console.log('🧹 Iniciando limpeza de dados de teste...');
+        console.log(`🗑️ Removendo lead ID: ${leadId}`);
         
-        // Importar sqlite diretamente para executar comando SQL
+        // Verificar se o lead existe antes de remover
+        const lead = await Lead.findById(leadId);
+        
+        if (!lead) {
+            return res.status(404).json({
+                success: false,
+                error: 'Lead não encontrado',
+                code: 'LEAD_NOT_FOUND'
+            });
+        }
+        
+        // Remover lead do banco
         const { getDatabase } = require('../database/init');
         const db = getDatabase();
         
-        // Limpar todos os leads
         const result = await new Promise((resolve, reject) => {
-            db.run('DELETE FROM leads', function(err) {
+            db.run('DELETE FROM leads WHERE id = ?', [leadId], function(err) {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve({ deletedRows: this.changes });
+                    resolve({ 
+                        deletedRows: this.changes,
+                        leadData: lead
+                    });
                 }
             });
         });
         
-        // Reset do auto-increment
-        await new Promise((resolve, reject) => {
-            db.run('DELETE FROM sqlite_sequence WHERE name="leads"', function(err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
+        if (result.deletedRows === 0) {
+            return res.status(404).json({
+                success: false,
+                error: 'Lead não encontrado ou já foi removido',
+                code: 'LEAD_NOT_FOUND'
             });
-        });
+        }
         
-        console.log(`✅ Limpeza concluída: ${result.deletedRows} leads removidos`);
+        console.log(`✅ Lead removido: ${lead.nome} (${lead.email})`);
         
         res.json({
             success: true,
-            message: `Base de dados limpa com sucesso! ${result.deletedRows} leads removidos.`,
-            deletedCount: result.deletedRows,
+            message: `Lead "${lead.nome}" removido com sucesso!`,
+            data: {
+                id: leadId,
+                nome: lead.nome,
+                email: lead.email
+            },
             timestamp: new Date().toISOString()
         });
         
     } catch (error) {
-        console.error('❌ Erro ao limpar base de dados:', error);
+        console.error('❌ Erro ao remover lead:', error);
         res.status(500).json({
             success: false,
-            error: 'Erro ao limpar base de dados',
-            code: 'DATABASE_CLEAR_ERROR',
+            error: 'Erro ao remover lead',
+            code: 'LEAD_DELETE_ERROR',
             details: error.message
         });
     }

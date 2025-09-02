@@ -128,7 +128,7 @@
             background: rgba(0, 212, 255, 0.2);
             padding: 20px;
             display: grid;
-            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr;
+            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr 100px;
             gap: 15px;
             font-weight: bold;
             border-bottom: 2px solid rgba(0, 212, 255, 0.3);
@@ -137,7 +137,7 @@
         .table-row {
             padding: 15px 20px;
             display: grid;
-            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr;
+            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr 100px;
             gap: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             transition: background 0.3s ease;
@@ -333,6 +333,29 @@
             background: rgba(255, 0, 0, 0.3);
             transform: scale(1.05);
         }
+        
+        .delete-btn {
+            padding: 6px 12px;
+            background: rgba(255, 0, 0, 0.2);
+            border: 1px solid rgba(255, 0, 0, 0.5);
+            border-radius: 6px;
+            color: #ff6b6b;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .delete-btn:hover {
+            background: rgba(255, 0, 0, 0.4);
+            transform: scale(1.05);
+            box-shadow: 0 3px 10px rgba(255, 0, 0, 0.3);
+        }
+        
+        .delete-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
     </style>
 </head>
 <body>
@@ -403,6 +426,7 @@
                 <div>🎂 Idade</div>
                 <div>📚 Curso</div>
                 <div>📅 Data</div>
+                <div>⚙️ Ações</div>
             </div>
             <div id="leadsContainer">
                 <div class="loading">Carregando leads</div>
@@ -483,7 +507,7 @@
             }
             
             const leadsHTML = filteredLeads.map(lead => `
-                <div class="table-row">
+                <div class="table-row" data-lead-id="${lead.id}">
                     <div class="lead-id">#${lead.id}</div>
                     <div class="lead-name">${lead.nome}</div>
                     <div class="lead-email">${lead.email}</div>
@@ -491,6 +515,11 @@
                     <div class="lead-age">${lead.idade}</div>
                     <div class="lead-course">${lead.curso}</div>
                     <div class="lead-date">${formatDate(lead.data_criacao)}</div>
+                    <div>
+                        <button class="delete-btn" onclick="deleteLead(${lead.id}, '${lead.nome.replace(/'/g, "\\'")}')">
+                            🗑️ Remover
+                        </button>
+                    </div>
                 </div>
             `).join('');
             
@@ -635,6 +664,57 @@
         ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'].forEach(event => {
             document.addEventListener(event, resetInactivityTimer, true);
         });
+        
+        // Função para deletar lead
+        async function deleteLead(leadId, leadName) {
+            if (!confirm(`⚠️ ATENÇÃO!\n\nTem certeza que deseja REMOVER PERMANENTEMENTE o lead:\n\n"${leadName}" (ID: ${leadId})\n\nEsta ação NÃO pode ser desfeita!`)) {
+                return;
+            }
+            
+            try {
+                const btn = document.querySelector(`[data-lead-id="${leadId}"] .delete-btn`);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = '⏳ Removendo...';
+                }
+                
+                const response = await fetch(`${API_BASE}/leads/${leadId}`, {
+                    method: 'DELETE'
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Remover lead da lista local
+                    allLeads = allLeads.filter(lead => lead.id !== leadId);
+                    filteredLeads = filteredLeads.filter(lead => lead.id !== leadId);
+                    
+                    // Atualizar interface
+                    renderLeads();
+                    loadStats(); // Atualizar estatísticas
+                    
+                    // Mostrar sucesso
+                    alert(`✅ Lead "${leadName}" removido com sucesso!`);
+                    
+                } else {
+                    throw new Error(data.error || 'Erro desconhecido');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao remover lead:', error);
+                alert(`❌ Erro ao remover lead: ${error.message}`);
+                
+                // Restaurar botão em caso de erro
+                const btn = document.querySelector(`[data-lead-id="${leadId}"] .delete-btn`);
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '🗑️ Remover';
+                }
+            }
+        }
+        
+        // Tornar função global para uso no onclick
+        window.deleteLead = deleteLead;
         
         // Inicialização
         checkAuth();
