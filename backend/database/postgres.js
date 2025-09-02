@@ -114,7 +114,8 @@ const getStats = async () => {
         const queries = {
             total: 'SELECT COUNT(*) as count FROM leads',
             hoje: `SELECT COUNT(*) as count FROM leads 
-                   WHERE DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE`,
+                   WHERE DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = 
+                   DATE(NOW() AT TIME ZONE 'America/Sao_Paulo')`,
             semana: `SELECT COUNT(*) as count FROM leads 
                      WHERE data_criacao >= NOW() - INTERVAL '7 days'`,
             mes: `SELECT COUNT(*) as count FROM leads 
@@ -131,7 +132,10 @@ const getStats = async () => {
         for (const [key, sql] of Object.entries(queries)) {
             const result = await query(sql);
             if (key === 'por_curso' || key === 'por_status') {
-                results[key] = result.rows;
+                results[key] = result.rows.map(row => ({
+                    ...row,
+                    count: parseInt(row.count)
+                }));
             } else {
                 results[key] = parseInt(result.rows[0].count);
             }

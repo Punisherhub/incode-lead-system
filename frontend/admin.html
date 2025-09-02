@@ -531,10 +531,16 @@
             const currentValue = courseFilter.value;
             courseFilter.innerHTML = '<option value="">📚 Todos os cursos</option>';
             
+            if (!courses || !Array.isArray(courses)) {
+                console.warn('Courses data is not an array:', courses);
+                return;
+            }
+            
             courses.forEach(course => {
                 const option = document.createElement('option');
                 option.value = course.curso;
-                option.textContent = `${course.curso} (${course.count})`;
+                const count = parseInt(course.count) || course.count || 0;
+                option.textContent = `${course.curso} (${count})`;
                 courseFilter.appendChild(option);
             });
             
