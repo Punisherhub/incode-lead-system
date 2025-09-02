@@ -1,4 +1,25 @@
-const { runQuery, getQuery, allQuery } = require('../database/init');
+// Usar PostgreSQL em produção, SQLite em desenvolvimento
+let dbQuery, dbGetQuery, dbAllQuery;
+
+if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+    // PostgreSQL
+    const { query } = require('../database/postgres');
+    dbQuery = query;
+    dbGetQuery = async (sql, params = []) => {
+        const result = await query(sql, params);
+        return result.rows[0];
+    };
+    dbAllQuery = async (sql, params = []) => {
+        const result = await query(sql, params);
+        return result.rows;
+    };
+} else {
+    // SQLite
+    const { runQuery, getQuery, allQuery } = require('../database/init');
+    dbQuery = runQuery;
+    dbGetQuery = getQuery;
+    dbAllQuery = allQuery;
+}
 
 class Lead {
     constructor(data) {
@@ -61,7 +82,7 @@ class Lead {
         this.telefone = this.telefone ? this.telefone.trim() : '';
         
         // Remover caracteres especiais do nome
-        this.nome = this.nome.replace(/[<>\"']/g, '');
+        this.nome = this.nome.replace(/[<>"']/g, '');
         
         return this;
     }
@@ -84,39 +105,81 @@ class Lead {
                 throw new Error('Email já cadastrado no sistema');
             }
             
-            const query = `
-                INSERT INTO leads (
-                    nome, email, telefone, idade, curso, 
-                    ip_address, user_agent, origem, status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-            `;
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+            let insertQuery, params, result;
             
-            const params = [
-                this.nome,
-                this.email,
-                this.telefone,
-                this.idade,
-                this.curso,
-                this.ip_address,
-                this.user_agent,
-                this.origem,
-                this.status
-            ];
-            
-            const result = await runQuery(query, params);
-            
-            // Log da criação
-            await this.logEvent('lead_created', {
-                lead_id: result.id,
-                curso: this.curso,
-                idade: this.idade
-            });
-            
-            return {
-                id: result.id,
-                success: true,
-                message: 'Lead cadastrado com sucesso!'
-            };
+            if (isProduction) {
+                // PostgreSQL
+                insertQuery = `
+                    INSERT INTO leads (
+                        nome, email, telefone, idade, curso, 
+                        ip_address, user_agent, origem, status
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                    RETURNING id
+                `;
+                
+                params = [
+                    this.nome,
+                    this.email,
+                    this.telefone,
+                    this.idade,
+                    this.curso,
+                    this.ip_address,
+                    this.user_agent,
+                    this.origem,
+                    this.status
+                ];
+                
+                result = await dbQuery(insertQuery, params);
+                
+                // Log da criação
+                await this.logEvent('lead_created', {
+                    lead_id: result.rows[0].id,
+                    curso: this.curso,
+                    idade: this.idade
+                });
+                
+                return {
+                    id: result.rows[0].id,
+                    success: true,
+                    message: 'Lead cadastrado com sucesso!'
+                };
+            } else {
+                // SQLite
+                insertQuery = `
+                    INSERT INTO leads (
+                        nome, email, telefone, idade, curso, 
+                        ip_address, user_agent, origem, status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                `;
+                
+                params = [
+                    this.nome,
+                    this.email,
+                    this.telefone,
+                    this.idade,
+                    this.curso,
+                    this.ip_address,
+                    this.user_agent,
+                    this.origem,
+                    this.status
+                ];
+                
+                result = await dbQuery(insertQuery, params);
+                
+                // Log da criação
+                await this.logEvent('lead_created', {
+                    lead_id: result.id,
+                    curso: this.curso,
+                    idade: this.idade
+                });
+                
+                return {
+                    id: result.id,
+                    success: true,
+                    message: 'Lead cadastrado com sucesso!'
+                };
+            }
             
         } catch (error) {
             console.error('Erro ao salvar lead:', error);
@@ -127,8 +190,9 @@ class Lead {
     // Buscar lead por email
     static async findByEmail(email) {
         try {
-            const query = 'SELECT * FROM leads WHERE email = ?';
-            const result = await getQuery(query, [email.toLowerCase()]);
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+            const query = isProduction ? 'SELECT * FROM leads WHERE email = $1' : 'SELECT * FROM leads WHERE email = ?';
+            const result = await dbGetQuery(query, [email.toLowerCase()]);
             return result;
         } catch (error) {
             console.error('Erro ao buscar lead por email:', error);
@@ -139,8 +203,9 @@ class Lead {
     // Buscar lead por ID
     static async findById(id) {
         try {
-            const query = 'SELECT * FROM leads WHERE id = ?';
-            const result = await getQuery(query, [id]);
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+            const query = isProduction ? 'SELECT * FROM leads WHERE id = $1' : 'SELECT * FROM leads WHERE id = ?';
+            const result = await dbGetQuery(query, [id]);
             return result;
         } catch (error) {
             console.error('Erro ao buscar lead por ID:', error);
@@ -152,55 +217,76 @@ class Lead {
     static async findAll(page = 1, limit = 50, filters = {}) {
         try {
             const offset = (page - 1) * limit;
-            let query = 'SELECT * FROM leads';
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+            
+            let selectQuery = 'SELECT * FROM leads';
             let countQuery = 'SELECT COUNT(*) as total FROM leads';
             const params = [];
             const whereConditions = [];
+            let paramIndex = 1;
             
             // Aplicar filtros
             if (filters.curso) {
-                whereConditions.push('curso = ?');
+                whereConditions.push(isProduction ? `curso = $${paramIndex++}` : 'curso = ?');
                 params.push(filters.curso);
             }
             
             if (filters.status) {
-                whereConditions.push('status = ?');
+                whereConditions.push(isProduction ? `status = $${paramIndex++}` : 'status = ?');
                 params.push(filters.status);
             }
             
             if (filters.data_inicio) {
-                whereConditions.push('DATE(data_criacao) >= ?');
+                if (isProduction) {
+                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') >= $${paramIndex++}`);
+                } else {
+                    whereConditions.push('DATE(data_criacao) >= ?');
+                }
                 params.push(filters.data_inicio);
             }
             
             if (filters.data_fim) {
-                whereConditions.push('DATE(data_criacao) <= ?');
+                if (isProduction) {
+                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') <= $${paramIndex++}`);
+                } else {
+                    whereConditions.push('DATE(data_criacao) <= ?');
+                }
                 params.push(filters.data_fim);
             }
             
             if (filters.search) {
-                whereConditions.push('(nome LIKE ? OR email LIKE ?)');
-                params.push(`%${filters.search}%`, `%${filters.search}%`);
+                if (isProduction) {
+                    whereConditions.push(`(nome ILIKE $${paramIndex} OR email ILIKE $${paramIndex + 1})`);
+                    params.push(`%${filters.search}%`, `%${filters.search}%`);
+                    paramIndex += 2;
+                } else {
+                    whereConditions.push('(nome LIKE ? OR email LIKE ?)');
+                    params.push(`%${filters.search}%`, `%${filters.search}%`);
+                }
             }
             
             // Adicionar WHERE se há condições
             if (whereConditions.length > 0) {
                 const whereClause = ' WHERE ' + whereConditions.join(' AND ');
-                query += whereClause;
+                selectQuery += whereClause;
                 countQuery += whereClause;
             }
             
             // Ordenação
-            query += ' ORDER BY data_criacao DESC';
+            selectQuery += ' ORDER BY data_criacao DESC';
             
             // Paginação
-            query += ' LIMIT ? OFFSET ?';
-            params.push(limit, offset);
+            if (isProduction) {
+                selectQuery += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+            } else {
+                selectQuery += ' LIMIT ? OFFSET ?';
+            }
+            const queryParams = [...params, limit, offset];
             
             // Executar queries
             const [leads, countResult] = await Promise.all([
-                allQuery(query, params),
-                getQuery(countQuery, params.slice(0, -2)) // Remove limit e offset do count
+                dbAllQuery(selectQuery, queryParams),
+                dbGetQuery(countQuery, params)
             ]);
             
             return {
@@ -208,8 +294,8 @@ class Lead {
                 pagination: {
                     page: page,
                     limit: limit,
-                    total: countResult.total,
-                    totalPages: Math.ceil(countResult.total / limit)
+                    total: parseInt(countResult.total),
+                    totalPages: Math.ceil(parseInt(countResult.total) / limit)
                 }
             };
             
@@ -222,16 +308,31 @@ class Lead {
     // Atualizar status do lead
     static async updateStatus(id, status) {
         try {
-            const query = `
-                UPDATE leads 
-                SET status = ?, data_atualizacao = CURRENT_TIMESTAMP 
-                WHERE id = ?
-            `;
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
             
-            const result = await runQuery(query, [status, id]);
-            
-            if (result.changes === 0) {
-                throw new Error('Lead não encontrado');
+            let updateQuery, result;
+            if (isProduction) {
+                updateQuery = `
+                    UPDATE leads 
+                    SET status = $1, data_atualizacao = NOW() 
+                    WHERE id = $2
+                `;
+                result = await dbQuery(updateQuery, [status, id]);
+                
+                if (result.rowCount === 0) {
+                    throw new Error('Lead não encontrado');
+                }
+            } else {
+                updateQuery = `
+                    UPDATE leads 
+                    SET status = ?, data_atualizacao = CURRENT_TIMESTAMP 
+                    WHERE id = ?
+                `;
+                result = await dbQuery(updateQuery, [status, id]);
+                
+                if (result.changes === 0) {
+                    throw new Error('Lead não encontrado');
+                }
             }
             
             return { success: true, message: 'Status atualizado com sucesso' };
@@ -242,33 +343,88 @@ class Lead {
         }
     }
     
+    // Deletar lead
+    static async delete(id) {
+        try {
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+            
+            let deleteQuery, result;
+            if (isProduction) {
+                deleteQuery = 'DELETE FROM leads WHERE id = $1';
+                result = await dbQuery(deleteQuery, [id]);
+                
+                if (result.rowCount === 0) {
+                    throw new Error('Lead não encontrado');
+                }
+            } else {
+                deleteQuery = 'DELETE FROM leads WHERE id = ?';
+                result = await dbQuery(deleteQuery, [id]);
+                
+                if (result.changes === 0) {
+                    throw new Error('Lead não encontrado');
+                }
+            }
+            
+            return { success: true, message: 'Lead deletado com sucesso' };
+            
+        } catch (error) {
+            console.error('Erro ao deletar lead:', error);
+            throw error;
+        }
+    }
+    
     // Marcar como enviado para n8n
     static async markAsSentToN8N(id, success = true, error = null) {
         try {
-            let query, params;
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+            
+            let updateQuery, params;
             
             if (success) {
-                query = `
-                    UPDATE leads 
-                    SET enviado_n8n = TRUE, 
-                        tentativas_n8n = tentativas_n8n + 1,
-                        ultimo_erro_n8n = NULL,
-                        data_atualizacao = CURRENT_TIMESTAMP 
-                    WHERE id = ?
-                `;
-                params = [id];
+                if (isProduction) {
+                    updateQuery = `
+                        UPDATE leads 
+                        SET enviado_n8n = TRUE, 
+                            tentativas_n8n = tentativas_n8n + 1,
+                            ultimo_erro_n8n = NULL,
+                            data_atualizacao = NOW() 
+                        WHERE id = $1
+                    `;
+                    params = [id];
+                } else {
+                    updateQuery = `
+                        UPDATE leads 
+                        SET enviado_n8n = TRUE, 
+                            tentativas_n8n = tentativas_n8n + 1,
+                            ultimo_erro_n8n = NULL,
+                            data_atualizacao = CURRENT_TIMESTAMP 
+                        WHERE id = ?
+                    `;
+                    params = [id];
+                }
             } else {
-                query = `
-                    UPDATE leads 
-                    SET tentativas_n8n = tentativas_n8n + 1,
-                        ultimo_erro_n8n = ?,
-                        data_atualizacao = CURRENT_TIMESTAMP 
-                    WHERE id = ?
-                `;
-                params = [error, id];
+                if (isProduction) {
+                    updateQuery = `
+                        UPDATE leads 
+                        SET tentativas_n8n = tentativas_n8n + 1,
+                            ultimo_erro_n8n = $1,
+                            data_atualizacao = NOW() 
+                        WHERE id = $2
+                    `;
+                    params = [error, id];
+                } else {
+                    updateQuery = `
+                        UPDATE leads 
+                        SET tentativas_n8n = tentativas_n8n + 1,
+                            ultimo_erro_n8n = ?,
+                            data_atualizacao = CURRENT_TIMESTAMP 
+                        WHERE id = ?
+                    `;
+                    params = [error, id];
+                }
             }
             
-            await runQuery(query, params);
+            await dbQuery(updateQuery, params);
             
         } catch (error) {
             console.error('Erro ao marcar envio para n8n:', error);
@@ -279,14 +435,14 @@ class Lead {
     // Obter leads não enviados para n8n
     static async getUnsentToN8N() {
         try {
-            const query = `
+            const selectQuery = `
                 SELECT * FROM leads 
                 WHERE enviado_n8n = FALSE 
                 AND tentativas_n8n < 3
                 ORDER BY data_criacao DESC
             `;
             
-            const result = await allQuery(query);
+            const result = await dbAllQuery(selectQuery);
             return result;
             
         } catch (error) {
@@ -298,19 +454,29 @@ class Lead {
     // Log de eventos
     async logEvent(evento, dados = {}) {
         try {
-            const query = `
-                INSERT INTO analytics (evento, dados, ip_address, user_agent)
-                VALUES (?, ?, ?, ?)
-            `;
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
             
-            const params = [
+            let insertQuery, params;
+            if (isProduction) {
+                insertQuery = `
+                    INSERT INTO analytics (evento, dados, ip_address, user_agent)
+                    VALUES ($1, $2, $3, $4)
+                `;
+            } else {
+                insertQuery = `
+                    INSERT INTO analytics (evento, dados, ip_address, user_agent)
+                    VALUES (?, ?, ?, ?)
+                `;
+            }
+            
+            params = [
                 evento,
                 JSON.stringify(dados),
                 this.ip_address || null,
                 this.user_agent || null
             ];
             
-            await runQuery(query, params);
+            await dbQuery(insertQuery, params);
             
         } catch (error) {
             console.error('Erro ao registrar evento:', error);
@@ -321,29 +487,38 @@ class Lead {
     // Estatísticas
     static async getStats() {
         try {
-            const queries = {
-                total: 'SELECT COUNT(*) as count FROM leads',
-                hoje: 'SELECT COUNT(*) as count FROM leads WHERE DATE(data_criacao) = DATE("now")',
-                semana: 'SELECT COUNT(*) as count FROM leads WHERE data_criacao >= datetime("now", "-7 days")',
-                mes: 'SELECT COUNT(*) as count FROM leads WHERE strftime("%Y-%m", data_criacao) = strftime("%Y-%m", "now")',
-                por_curso: 'SELECT curso, COUNT(*) as count FROM leads GROUP BY curso ORDER BY count DESC',
-                por_status: 'SELECT status, COUNT(*) as count FROM leads GROUP BY status',
-                enviados_n8n: 'SELECT COUNT(*) as count FROM leads WHERE enviado_n8n = TRUE'
-            };
+            const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
             
-            const stats = {};
-            
-            // Executar queries simples
-            for (const [key, query] of Object.entries(queries)) {
-                if (key.includes('por_')) {
-                    stats[key] = await allQuery(query);
-                } else {
-                    const result = await getQuery(query);
-                    stats[key] = result.count;
+            if (isProduction) {
+                // Usar a função de estatísticas do módulo postgres
+                const { getStats } = require('../database/postgres');
+                return await getStats();
+            } else {
+                // Usar queries SQLite
+                const queries = {
+                    total: 'SELECT COUNT(*) as count FROM leads',
+                    hoje: 'SELECT COUNT(*) as count FROM leads WHERE DATE(data_criacao) = DATE("now")',
+                    semana: 'SELECT COUNT(*) as count FROM leads WHERE data_criacao >= datetime("now", "-7 days")',
+                    mes: 'SELECT COUNT(*) as count FROM leads WHERE strftime("%Y-%m", data_criacao) = strftime("%Y-%m", "now")',
+                    por_curso: 'SELECT curso, COUNT(*) as count FROM leads GROUP BY curso ORDER BY count DESC',
+                    por_status: 'SELECT status, COUNT(*) as count FROM leads GROUP BY status',
+                    enviados_n8n: 'SELECT COUNT(*) as count FROM leads WHERE enviado_n8n = TRUE'
+                };
+                
+                const stats = {};
+                
+                // Executar queries simples
+                for (const [key, query] of Object.entries(queries)) {
+                    if (key.includes('por_')) {
+                        stats[key] = await dbAllQuery(query);
+                    } else {
+                        const result = await dbGetQuery(query);
+                        stats[key] = result.count;
+                    }
                 }
+                
+                return stats;
             }
-            
-            return stats;
             
         } catch (error) {
             console.error('Erro ao obter estatísticas:', error);

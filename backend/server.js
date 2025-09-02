@@ -7,10 +7,17 @@ const fs = require('fs');
 require('dotenv').config();
 
 const leadRoutes = require('./routes/leads');
-const { initDatabase } = require('./database/init');
+
+// Usar PostgreSQL em produção, SQLite em desenvolvimento
+let dbModule;
+if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+    dbModule = require('./database/postgres');
+} else {
+    dbModule = require('./database/init');
+}
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 3002;
 
 // Middleware de segurança
 app.use(helmet({
@@ -126,9 +133,34 @@ app.use('/api/*', (req, res) => {
 // Inicializar banco de dados e servidor
 async function startServer() {
     try {
-        // Inicializar banco de dados
-        await initDatabase();
-        console.log('✅ Banco de dados inicializado com sucesso!');
+        if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+            // Usar PostgreSQL em produção
+            console.log('🔌 Testando conexão PostgreSQL...');
+            const { testConnection, initializeTables } = require('./database/postgres');
+            const { migrateFromSQLiteToPostgreSQL } = require('./database/migrate');
+            
+            const isConnected = await testConnection();
+            if (!isConnected) {
+                throw new Error('Falha na conexão com PostgreSQL');
+            }
+            
+            console.log('🏗️ Inicializando tabelas PostgreSQL...');
+            await initializeTables();
+            
+            // Migrar dados do SQLite se necessário
+            if (process.env.MIGRATE_FROM_SQLITE === 'true') {
+                console.log('📦 Executando migração do SQLite...');
+                await migrateFromSQLiteToPostgreSQL();
+            }
+            
+            console.log('✅ PostgreSQL inicializado com sucesso!');
+        } else {
+            // Usar SQLite em desenvolvimento
+            console.log('🔌 Usando SQLite para desenvolvimento...');
+            const { initDatabase } = require('./database/init');
+            await initDatabase();
+            console.log('✅ SQLite inicializado com sucesso!');
+        }
         
         // Criar diretório de logs se não existir
         const logsDir = path.join(__dirname, 'logs');
