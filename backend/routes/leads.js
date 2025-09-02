@@ -366,4 +366,65 @@ async function sendToN8N(leadId, leadData) {
     }
 }
 
+// ENDPOINT TEMPORÁRIO PARA LIMPEZA (REMOVER DEPOIS)
+router.delete('/admin/clear-test-data', async (req, res) => {
+    try {
+        // Verificar se é ambiente de desenvolvimento ou se tem permissão
+        const adminKey = req.headers['x-admin-key'];
+        if (adminKey !== 'incode2025-clear-db') {
+            return res.status(403).json({
+                success: false,
+                error: 'Acesso negado. Chave de administrador inválida.',
+                code: 'ADMIN_ACCESS_DENIED'
+            });
+        }
+        
+        console.log('🧹 Iniciando limpeza de dados de teste...');
+        
+        // Importar sqlite diretamente para executar comando SQL
+        const { getDatabase } = require('../database/init');
+        const db = getDatabase();
+        
+        // Limpar todos os leads
+        const result = await new Promise((resolve, reject) => {
+            db.run('DELETE FROM leads', function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve({ deletedRows: this.changes });
+                }
+            });
+        });
+        
+        // Reset do auto-increment
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM sqlite_sequence WHERE name="leads"', function(err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve();
+                }
+            });
+        });
+        
+        console.log(`✅ Limpeza concluída: ${result.deletedRows} leads removidos`);
+        
+        res.json({
+            success: true,
+            message: `Base de dados limpa com sucesso! ${result.deletedRows} leads removidos.`,
+            deletedCount: result.deletedRows,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao limpar base de dados:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro ao limpar base de dados',
+            code: 'DATABASE_CLEAR_ERROR',
+            details: error.message
+        });
+    }
+});
+
 module.exports = router;
