@@ -62,7 +62,7 @@
 #   directory = "netlify/functions"
 
 # Plugin para otimizações
-[plugins]
+[[plugins]]
   package = "netlify-plugin-minify-html"
   
     [plugins.inputs]
