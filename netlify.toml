@@ -14,7 +14,7 @@
 # Redirects para SPA
 [[redirects]]
   from = "/api/*"
-  to = "https://incode-lead-api.railway.app/api/:splat"
+  to = "https://incode-lead-system-production.up.railway.app/api/:splat"
   status = 200
   force = true
 
