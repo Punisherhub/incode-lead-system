@@ -1,4 +1,4 @@
-// Three.js Scene - Efeitos 3D Extraordinários
+// Three.js Scene - Otimizado para Performance
 class IncodeThreeScene {
     constructor() {
         this.scene = null;
@@ -10,9 +10,38 @@ class IncodeThreeScene {
         this.mouse = { x: 0, y: 0 };
         this.windowHalf = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
         
+        // Performance settings
+        this.isMobile = this.detectMobile();
+        this.isLowPerformance = this.detectLowPerformance();
+        this.animationSpeed = this.isMobile ? 0.3 : 0.5; // Animações mais suaves
+        this.lastTime = 0;
+        this.frameRate = this.isMobile ? 30 : 60; // FPS adaptativo
+        this.frameInterval = 1000 / this.frameRate;
+        
         this.init();
         this.animate();
         this.addEventListeners();
+    }
+    
+    detectMobile() {
+        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) 
+               || window.innerWidth < 768;
+    }
+    
+    detectLowPerformance() {
+        // Detectar dispositivos de baixa performance
+        const canvas = document.createElement('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+        if (!gl) return true;
+        
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+            const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+            // Lista de GPUs de baixa performance
+            return /Mali|Adreno [0-9][0-9][0-9]|PowerVR|Intel/i.test(renderer);
+        }
+        
+        return this.isMobile || navigator.hardwareConcurrency < 4;
     }
     
     init() {
@@ -28,13 +57,15 @@ class IncodeThreeScene {
         );
         this.camera.position.z = 1000;
         
-        // Configurar renderer
+        // Configurar renderer com otimizações
         this.renderer = new THREE.WebGLRenderer({ 
             alpha: true, 
-            antialias: true 
+            antialias: !this.isMobile, // Desabilitar antialias no mobile
+            powerPreference: this.isMobile ? "low-power" : "high-performance"
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        // Reduzir pixel ratio em dispositivos móveis para melhor performance
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.5 : 2));
         
         // Adicionar ao container
         const container = document.getElementById('threejs-container');
@@ -48,7 +79,13 @@ class IncodeThreeScene {
     }
     
     createParticles() {
-        const particleCount = 2000;
+        // Reduzir partículas baseado na performance do dispositivo
+        let particleCount = 2000;
+        if (this.isMobile) {
+            particleCount = 800; // Muito menos partículas no mobile
+        } else if (this.isLowPerformance) {
+            particleCount = 1200; // Quantidade intermediária para baixa performance
+        }
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
         const colors = new Float32Array(particleCount * 3);
@@ -236,15 +273,23 @@ class IncodeThreeScene {
     animate() {
         requestAnimationFrame(() => this.animate());
         
-        const time = Date.now() * 0.001;
+        const currentTime = Date.now();
         
-        // Animar partículas
+        // Controle de FPS para melhor performance
+        if (currentTime - this.lastTime < this.frameInterval) {
+            return;
+        }
+        
+        this.lastTime = currentTime;
+        const time = currentTime * 0.001;
+        
+        // Animar partículas com velocidade adaptativa
         if (this.particles) {
-            this.particles.rotation.x = time * 0.1;
-            this.particles.rotation.y = time * 0.05;
+            this.particles.rotation.x = time * 0.05 * this.animationSpeed;
+            this.particles.rotation.y = time * 0.03 * this.animationSpeed;
             
-            // Efeito de respiração
-            const scale = 1 + Math.sin(time * 2) * 0.1;
+            // Efeito de respiração mais suave
+            const scale = 1 + Math.sin(time * 1.5) * 0.05;
             this.particles.scale.setScalar(scale);
         }
         

@@ -592,6 +592,28 @@ body {
     transform: scale(1.2);
 }
 
+/* Instagram Link Styling */
+.instagram-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(45deg, #833ab4, #fd1d1d, #fcb045);
+    color: white;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(131, 58, 180, 0.3);
+}
+
+.instagram-link:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(131, 58, 180, 0.4);
+    text-decoration: none;
+    color: white;
+}
+
 /* ===== SUCCESS MODAL ===== */
 .modal {
     display: none;
