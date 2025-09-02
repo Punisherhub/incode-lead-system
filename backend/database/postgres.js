@@ -4,9 +4,10 @@ const { Pool } = require('pg');
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-    max: 20,
+    max: 10,
     idleTimeoutMillis: 30000,
-    connectionTimeoutMillis: 2000,
+    connectionTimeoutMillis: 10000,
+    acquireTimeoutMillis: 10000,
 });
 
 // Eventos de conexão
@@ -96,11 +97,13 @@ const initializeTables = async () => {
 // Função para testar conexão
 const testConnection = async () => {
     try {
-        const result = await query('SELECT NOW() as current_time, version() as pg_version');
-        console.log('✅ Conexão PostgreSQL testada:', result.rows[0]);
+        const client = await pool.connect();
+        const result = await client.query('SELECT NOW() as current_time');
+        client.release();
+        console.log('✅ Conexão PostgreSQL testada:', result.rows[0].current_time);
         return true;
     } catch (error) {
-        console.error('❌ Erro ao testar conexão PostgreSQL:', error);
+        console.error('❌ Erro ao testar conexão PostgreSQL:', error.message);
         return false;
     }
 };

@@ -135,25 +135,40 @@ async function startServer() {
     try {
         if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
             // Usar PostgreSQL em produção
-            console.log('🔌 Testando conexão PostgreSQL...');
-            const { testConnection, initializeTables } = require('./database/postgres');
-            const { migrateFromSQLiteToPostgreSQL } = require('./database/migrate');
-            
-            const isConnected = await testConnection();
-            if (!isConnected) {
-                throw new Error('Falha na conexão com PostgreSQL');
+            try {
+                console.log('🔌 Testando conexão PostgreSQL...');
+                const { testConnection, initializeTables } = require('./database/postgres');
+                
+                const isConnected = await testConnection();
+                if (!isConnected) {
+                    console.log('⚠️ PostgreSQL não disponível, usando SQLite como fallback');
+                    const { initDatabase } = require('./database/init');
+                    await initDatabase();
+                    console.log('✅ SQLite inicializado com sucesso!');
+                    return;
+                }
+                
+                console.log('🏗️ Inicializando tabelas PostgreSQL...');
+                await initializeTables();
+                
+                // Migrar dados do SQLite se necessário
+                if (process.env.MIGRATE_FROM_SQLITE === 'true') {
+                    try {
+                        console.log('📦 Executando migração do SQLite...');
+                        const { migrateFromSQLiteToPostgreSQL } = require('./database/migrate');
+                        await migrateFromSQLiteToPostgreSQL();
+                    } catch (migrationError) {
+                        console.log('⚠️ Erro na migração (continuando sem migrar):', migrationError.message);
+                    }
+                }
+                
+                console.log('✅ PostgreSQL inicializado com sucesso!');
+            } catch (error) {
+                console.log('⚠️ Erro com PostgreSQL, usando SQLite como fallback:', error.message);
+                const { initDatabase } = require('./database/init');
+                await initDatabase();
+                console.log('✅ SQLite inicializado como fallback!');
             }
-            
-            console.log('🏗️ Inicializando tabelas PostgreSQL...');
-            await initializeTables();
-            
-            // Migrar dados do SQLite se necessário
-            if (process.env.MIGRATE_FROM_SQLITE === 'true') {
-                console.log('📦 Executando migração do SQLite...');
-                await migrateFromSQLiteToPostgreSQL();
-            }
-            
-            console.log('✅ PostgreSQL inicializado com sucesso!');
         } else {
             // Usar SQLite em desenvolvimento
             console.log('🔌 Usando SQLite para desenvolvimento...');
