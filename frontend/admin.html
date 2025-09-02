@@ -541,11 +541,22 @@
             courseFilter.value = currentValue;
         }
         
-        // Função para formatar data
+        // Função para formatar data (horário do Brasil)
         function formatDate(dateString) {
             const date = new Date(dateString);
-            return date.toLocaleDateString('pt-BR') + ' ' + 
-                   date.toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
+            // Configurar para fuso horário do Brasil (UTC-3)
+            const options = {
+                timeZone: 'America/Sao_Paulo',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            };
+            
+            const formatter = new Intl.DateTimeFormat('pt-BR', options);
+            return formatter.format(date);
         }
         
         // Função de busca
