@@ -356,6 +356,234 @@
             cursor: not-allowed;
             transform: none;
         }
+        
+        /* Estilos para configuração de modo */
+        .config-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .config-title {
+            color: #00d4ff;
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .mode-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+        
+        .mode-option {
+            background: rgba(255, 255, 255, 0.08);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .mode-option:hover {
+            border-color: #00d4ff;
+            box-shadow: 0 5px 20px rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .mode-option.active {
+            border-color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+        }
+        
+        .mode-option::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transition: left 0.6s ease;
+        }
+        
+        .mode-option.active::before {
+            left: 100%;
+        }
+        
+        .mode-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+        
+        .mode-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        
+        .mode-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .mode-badge.general {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        
+        .mode-badge.workshop {
+            background: rgba(255, 136, 0, 0.2);
+            color: #ff8800;
+            border: 1px solid #ff8800;
+        }
+        
+        .mode-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.95rem;
+            line-height: 1.4;
+        }
+        
+        .mode-details {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .mode-changes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .change-tag {
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .workshop-config {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255, 136, 0, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 136, 0, 0.2);
+        }
+        
+        .workshop-config.active {
+            display: grid;
+        }
+        
+        .config-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .config-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #ff8800;
+        }
+        
+        .config-input {
+            padding: 10px 12px;
+            border: 1px solid rgba(255, 136, 0, 0.3);
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            font-size: 14px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+        
+        .config-input:focus {
+            border-color: #ff8800;
+            box-shadow: 0 0 10px rgba(255, 136, 0, 0.3);
+        }
+        
+        .config-input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .save-config-btn {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ff8800, #ff6600);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+        
+        .save-config-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(255, 136, 0, 0.4);
+        }
+        
+        .save-config-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .current-mode-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-left: 15px;
+        }
+        
+        .current-mode-indicator.general {
+            background: rgba(0, 255, 136, 0.2);
+            color: #00ff88;
+            border: 1px solid #00ff88;
+        }
+        
+        .current-mode-indicator.workshop {
+            background: rgba(255, 136, 0, 0.2);
+            color: #ff8800;
+            border: 1px solid #ff8800;
+        }
+        
+        .success-message {
+            background: rgba(0, 255, 136, 0.1);
+            color: #00ff88;
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-top: 15px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -385,8 +613,97 @@
                 <div>
                     <h1>🎓 INCODE ACADEMY</h1>
                     <p>Painel Administrativo - Gestão de Leads</p>
+                    <span id="currentModeIndicator" class="current-mode-indicator general">
+                        🎯 Modo: Captação Geral
+                    </span>
                 </div>
                 <button id="logoutBtn" class="logout-btn">🚪 Sair</button>
+            </div>
+        </div>
+        
+        <!-- Seção de Configuração de Modo -->
+        <div class="config-section">
+            <h2 class="config-title">
+                ⚙️ Configuração do Site
+            </h2>
+            
+            <div class="mode-selector">
+                <!-- Modo Captação Geral -->
+                <div class="mode-option active" data-mode="general" id="generalModeOption">
+                    <div class="mode-header">
+                        <span class="mode-name">🎯 Captação Geral</span>
+                        <span class="mode-badge general">ATIVO</span>
+                    </div>
+                    <p class="mode-description">
+                        Modo padrão para captação de leads interessados nos cursos da Incode Academy.
+                    </p>
+                    <div class="mode-details">
+                        <div class="mode-changes">
+                            <span class="change-tag">"DOMINE PYTHON"</span>
+                            <span class="change-tag">"ACESSE SEU FUTURO"</span>
+                            <span class="change-tag">"INICIAR JORNADA"</span>
+                            <span class="change-tag">Campos básicos</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Modo Workshop -->
+                <div class="mode-option" data-mode="workshop" id="workshopModeOption">
+                    <div class="mode-header">
+                        <span class="mode-name">🎓 Workshop/Evento</span>
+                        <span class="mode-badge workshop">INATIVO</span>
+                    </div>
+                    <p class="mode-description">
+                        Modo específico para inscrições em workshops, eventos e cursos específicos.
+                    </p>
+                    <div class="mode-details">
+                        <div class="mode-changes">
+                            <span class="change-tag">"PROGRAMAÇÃO COM PYTHON"</span>
+                            <span class="change-tag">"INSCREVA-SE"</span>
+                            <span class="change-tag">Campo dia evento</span>
+                            <span class="change-tag">Modal diferenciado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Configurações do Workshop -->
+            <div class="workshop-config" id="workshopConfig">
+                <div class="config-input-group">
+                    <label class="config-label">📅 Nome do Evento</label>
+                    <input type="text" class="config-input" id="eventName" 
+                           placeholder="Workshop Mês do Programador" 
+                           value="Workshop Mês do Programador">
+                </div>
+                
+                <div class="config-input-group">
+                    <label class="config-label">📍 Data do Evento</label>
+                    <input type="text" class="config-input" id="eventDate" 
+                           placeholder="17 e 18 de Setembro" 
+                           value="17 e 18 de Setembro">
+                </div>
+                
+                <div class="config-input-group">
+                    <label class="config-label">🎯 Título Principal</label>
+                    <input type="text" class="config-input" id="eventMainTitle" 
+                           placeholder="PROGRAMAÇÃO COM PYTHON" 
+                           value="PROGRAMAÇÃO COM PYTHON">
+                </div>
+                
+                <div class="config-input-group">
+                    <label class="config-label">📝 Subtítulo</label>
+                    <input type="text" class="config-input" id="eventSubtitle" 
+                           placeholder="Workshop Mês do Programador" 
+                           value="Workshop Mês do Programador">
+                </div>
+            </div>
+            
+            <button class="save-config-btn" id="saveConfigBtn">
+                💾 Salvar Configurações
+            </button>
+            
+            <div class="success-message" id="successMessage">
+                ✅ Configurações salvas com sucesso! O site foi atualizado.
             </div>
         </div>
         
@@ -442,6 +759,15 @@
         let allLeads = [];
         let filteredLeads = [];
         let isLoggedIn = false;
+        
+        // Configuração de modo
+        let currentMode = 'general';
+        let workshopConfig = {
+            eventName: 'Workshop Mês do Programador',
+            eventDate: '17 e 18 de Setembro',
+            eventMainTitle: 'PROGRAMAÇÃO COM PYTHON',
+            eventSubtitle: 'Workshop Mês do Programador'
+        };
         
         // Elementos do DOM
         const totalLeadsEl = document.getElementById('totalLeads');
@@ -628,6 +954,7 @@
             // Carregar dados
             loadStats();
             loadLeads();
+            loadSiteConfig();
         }
         
         // Mostrar tela de login
@@ -733,9 +1060,157 @@
         // Tornar função global para uso no onclick
         window.deleteLead = deleteLead;
         
+        // ========== FUNÇÕES DE CONFIGURAÇÃO DE MODO ==========
+        
+        // Carregar configuração atual
+        async function loadSiteConfig() {
+            try {
+                const response = await fetch(`${API_BASE}/config`);
+                const data = await response.json();
+                
+                if (data.success && data.data) {
+                    currentMode = data.data.mode || 'general';
+                    if (data.data.workshopConfig) {
+                        workshopConfig = { ...workshopConfig, ...data.data.workshopConfig };
+                    }
+                    updateConfigUI();
+                }
+            } catch (error) {
+                console.warn('Config não encontrada, usando padrão:', error);
+                // Usar configuração padrão se não existir no backend
+                currentMode = 'general';
+                updateConfigUI();
+            }
+        }
+        
+        // Salvar configuração
+        async function saveSiteConfig() {
+            try {
+                const saveBtn = document.getElementById('saveConfigBtn');
+                const successMsg = document.getElementById('successMessage');
+                
+                // Mostrar loading
+                saveBtn.disabled = true;
+                saveBtn.textContent = '💾 Salvando...';
+                
+                // Coletar dados do formulário se workshop estiver ativo
+                if (currentMode === 'workshop') {
+                    workshopConfig = {
+                        eventName: document.getElementById('eventName').value || workshopConfig.eventName,
+                        eventDate: document.getElementById('eventDate').value || workshopConfig.eventDate,
+                        eventMainTitle: document.getElementById('eventMainTitle').value || workshopConfig.eventMainTitle,
+                        eventSubtitle: document.getElementById('eventSubtitle').value || workshopConfig.eventSubtitle
+                    };
+                }
+                
+                const configData = {
+                    mode: currentMode,
+                    workshopConfig: workshopConfig
+                };
+                
+                const response = await fetch(`${API_BASE}/config`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(configData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Mostrar sucesso
+                    successMsg.style.display = 'block';
+                    setTimeout(() => {
+                        successMsg.style.display = 'none';
+                    }, 3000);
+                    
+                    updateConfigUI();
+                    
+                } else {
+                    throw new Error(result.error || 'Erro ao salvar configuração');
+                }
+                
+            } catch (error) {
+                console.error('Erro ao salvar configuração:', error);
+                alert(`❌ Erro ao salvar configuração: ${error.message}`);
+                
+            } finally {
+                const saveBtn = document.getElementById('saveConfigBtn');
+                saveBtn.disabled = false;
+                saveBtn.textContent = '💾 Salvar Configurações';
+            }
+        }
+        
+        // Atualizar interface baseado na configuração atual
+        function updateConfigUI() {
+            // Elementos do DOM
+            const generalOption = document.getElementById('generalModeOption');
+            const workshopOption = document.getElementById('workshopModeOption');
+            const workshopConfigDiv = document.getElementById('workshopConfig');
+            const currentModeIndicator = document.getElementById('currentModeIndicator');
+            
+            // Limpar estados anteriores
+            generalOption.classList.remove('active');
+            workshopOption.classList.remove('active');
+            workshopConfigDiv.classList.remove('active');
+            
+            // Atualizar badges
+            generalOption.querySelector('.mode-badge').textContent = 'INATIVO';
+            workshopOption.querySelector('.mode-badge').textContent = 'INATIVO';
+            
+            if (currentMode === 'general') {
+                generalOption.classList.add('active');
+                generalOption.querySelector('.mode-badge').textContent = 'ATIVO';
+                
+                currentModeIndicator.className = 'current-mode-indicator general';
+                currentModeIndicator.innerHTML = '🎯 Modo: Captação Geral';
+                
+            } else if (currentMode === 'workshop') {
+                workshopOption.classList.add('active');
+                workshopOption.querySelector('.mode-badge').textContent = 'ATIVO';
+                workshopConfigDiv.classList.add('active');
+                
+                currentModeIndicator.className = 'current-mode-indicator workshop';
+                currentModeIndicator.innerHTML = '🎓 Modo: Workshop/Evento';
+                
+                // Preencher campos do workshop
+                document.getElementById('eventName').value = workshopConfig.eventName;
+                document.getElementById('eventDate').value = workshopConfig.eventDate;
+                document.getElementById('eventMainTitle').value = workshopConfig.eventMainTitle;
+                document.getElementById('eventSubtitle').value = workshopConfig.eventSubtitle;
+            }
+        }
+        
+        // Event listeners para configuração
+        function setupConfigEventListeners() {
+            // Seleção de modo
+            const generalOption = document.getElementById('generalModeOption');
+            const workshopOption = document.getElementById('workshopModeOption');
+            const saveConfigBtn = document.getElementById('saveConfigBtn');
+            
+            generalOption.addEventListener('click', () => {
+                if (currentMode !== 'general') {
+                    currentMode = 'general';
+                    updateConfigUI();
+                }
+            });
+            
+            workshopOption.addEventListener('click', () => {
+                if (currentMode !== 'workshop') {
+                    currentMode = 'workshop';
+                    updateConfigUI();
+                }
+            });
+            
+            // Botão salvar
+            saveConfigBtn.addEventListener('click', saveSiteConfig);
+        }
+        
         // Inicialização
         checkAuth();
         resetInactivityTimer();
+        setupConfigEventListeners();
     </script>
 </body>
 </html>

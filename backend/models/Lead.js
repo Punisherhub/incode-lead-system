@@ -27,11 +27,16 @@ class Lead {
         this.email = data.email;
         this.telefone = data.telefone;
         this.idade = data.idade;
-        this.curso = data.curso;
+        this.curso = data.curso || data.curso_pretendido; // Compatibilidade
         this.ip_address = data.ip_address;
         this.user_agent = data.user_agent;
         this.origem = data.origem || 'website';
         this.status = data.status || 'novo';
+        
+        // Novos campos para workshop/eventos
+        this.tipo_lead = data.tipo_lead || 'geral'; // 'geral' ou 'workshop'
+        this.evento = data.evento || null; // Nome do evento/workshop
+        this.dia_evento = data.dia_evento || null; // Dia preferido para workshop
     }
     
     // Validar dados do lead
@@ -64,9 +69,20 @@ class Lead {
             errors.push('Idade deve estar entre 12 e 99 anos');
         }
         
-        // Campo curso é opcional agora - definir valor padrão
+        // Campo curso é opcional agora - definir valor padrão baseado no tipo
         if (!this.curso) {
-            this.curso = 'Python - Interesse Geral';
+            if (this.tipo_lead === 'workshop') {
+                this.curso = this.evento || 'Workshop Python';
+            } else {
+                this.curso = 'Python - Interesse Geral';
+            }
+        }
+        
+        // Validar campos específicos do workshop
+        if (this.tipo_lead === 'workshop') {
+            if (this.dia_evento && !['17', '18'].includes(this.dia_evento)) {
+                errors.push('Dia do evento deve ser 17 ou 18');
+            }
         }
         
         return {
@@ -113,8 +129,9 @@ class Lead {
                 insertQuery = `
                     INSERT INTO leads (
                         nome, email, telefone, idade, curso, 
-                        ip_address, user_agent, origem, status
-                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                        ip_address, user_agent, origem, status,
+                        tipo_lead, evento, dia_evento
+                    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
                     RETURNING id
                 `;
                 
@@ -127,7 +144,10 @@ class Lead {
                     this.ip_address,
                     this.user_agent,
                     this.origem,
-                    this.status
+                    this.status,
+                    this.tipo_lead,
+                    this.evento,
+                    this.dia_evento
                 ];
                 
                 result = await dbQuery(insertQuery, params);
@@ -149,8 +169,9 @@ class Lead {
                 insertQuery = `
                     INSERT INTO leads (
                         nome, email, telefone, idade, curso, 
-                        ip_address, user_agent, origem, status
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ip_address, user_agent, origem, status,
+                        tipo_lead, evento, dia_evento
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 `;
                 
                 params = [
@@ -162,7 +183,10 @@ class Lead {
                     this.ip_address,
                     this.user_agent,
                     this.origem,
-                    this.status
+                    this.status,
+                    this.tipo_lead,
+                    this.evento,
+                    this.dia_evento
                 ];
                 
                 result = await dbQuery(insertQuery, params);

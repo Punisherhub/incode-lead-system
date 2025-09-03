@@ -34,6 +34,59 @@ const query = async (text, params) => {
     }
 };
 
+// Função para adicionar novos campos se não existirem (migração)
+const addNewColumnsIfNotExists = async () => {
+    try {
+        console.log('🔄 Verificando se novos campos precisam ser adicionados...');
+        
+        // Verificar quais colunas existem
+        const result = await query(`
+            SELECT column_name 
+            FROM information_schema.columns 
+            WHERE table_name = 'leads' 
+            AND table_schema = 'public'
+        `);
+        
+        const existingColumns = result.rows.map(row => row.column_name);
+        console.log('📋 Colunas existentes no PostgreSQL:', existingColumns);
+        
+        const newColumns = [
+            { name: 'tipo_lead', definition: 'VARCHAR(50) DEFAULT \'geral\'' },
+            { name: 'evento', definition: 'VARCHAR(255)' },
+            { name: 'dia_evento', definition: 'VARCHAR(10)' }
+        ];
+        
+        const columnsToAdd = newColumns.filter(col => !existingColumns.includes(col.name));
+        
+        if (columnsToAdd.length === 0) {
+            console.log('✅ Schema PostgreSQL já está atualizado!');
+            return;
+        }
+        
+        console.log('🆕 Colunas a serem adicionadas no PostgreSQL:', columnsToAdd.map(col => col.name));
+        
+        // Adicionar colunas
+        for (const column of columnsToAdd) {
+            try {
+                await query(`ALTER TABLE leads ADD COLUMN ${column.name} ${column.definition}`);
+                console.log(`✅ Coluna ${column.name} adicionada no PostgreSQL`);
+            } catch (error) {
+                console.error(`❌ Erro ao adicionar coluna ${column.name}:`, error.message);
+            }
+        }
+        
+        // Atualizar registros existentes que não têm tipo_lead
+        if (columnsToAdd.some(col => col.name === 'tipo_lead')) {
+            await query(`UPDATE leads SET tipo_lead = 'geral' WHERE tipo_lead IS NULL`);
+            console.log('✅ Registros existentes atualizados com tipo_lead = "geral"');
+        }
+        
+    } catch (error) {
+        console.error('❌ Erro na migração PostgreSQL:', error);
+        // Não propagar erro para não quebrar a inicialização
+    }
+};
+
 // Função para criar tabelas
 const initializeTables = async () => {
     try {
@@ -57,9 +110,15 @@ const initializeTables = async () => {
                 enviado_n8n BOOLEAN DEFAULT FALSE,
                 tentativas_n8n INTEGER DEFAULT 0,
                 ultimo_erro_n8n TEXT,
-                observacoes TEXT
+                observacoes TEXT,
+                tipo_lead VARCHAR(50) DEFAULT 'geral',
+                evento VARCHAR(255),
+                dia_evento VARCHAR(10)
             )
         `);
+        
+        // Adicionar novos campos se a tabela já existe (migration)
+        await addNewColumnsIfNotExists();
         
         // Criar índices
         await query(`
@@ -67,6 +126,9 @@ const initializeTables = async () => {
             CREATE INDEX IF NOT EXISTS idx_leads_data_criacao ON leads(data_criacao);
             CREATE INDEX IF NOT EXISTS idx_leads_status ON leads(status);
             CREATE INDEX IF NOT EXISTS idx_leads_curso ON leads(curso);
+            CREATE INDEX IF NOT EXISTS idx_leads_tipo_lead ON leads(tipo_lead);
+            CREATE INDEX IF NOT EXISTS idx_leads_evento ON leads(evento);
+            CREATE INDEX IF NOT EXISTS idx_leads_dia_evento ON leads(dia_evento);
         `);
         
         // Criar trigger para data_atualizacao

@@ -24,7 +24,9 @@ npm run deploy      # Echo deploy message (configured in CI/CD)
 
 ### Database Management
 ```bash
-node backend/database/migrate.js  # Run database migrations
+node backend/database/migrate.js              # Run database migrations
+node backend/database/update-schema.js        # Update SQLite schema with new workshop fields
+node backend/database/migrate-postgres.js     # Update PostgreSQL schema with new workshop fields (production)
 ```
 
 ### Development & Debug
@@ -45,18 +47,47 @@ NODE_ENV=development npm start    # Force development mode
   - Migration scripts: `database/migrate.js`
 - **Models**: `models/Lead.js` - Lead data model with validation
 - **Routes**: `routes/leads.js` - API endpoints for lead management
-- **Default Port**: 3002 (configurable via .env PORT)
+- **Default Port**: 3001 (configurable via .env PORT, 3002 mentioned in some docs but 3001 in .env.example)
 
 ### Frontend Structure (`frontend/`)
 - **Entry Point**: `index.html` - SPA with Three.js 3D scene
 - **Admin Panel**: `admin.html` - Basic admin interface for viewing leads
+- **Assets**: `assets/images/logo-incode.png` - Brand assets
 - **Main App**: `js/app.js` - Application orchestrator
 - **Core Components**:
   - `js/three-scene.js` - 3D scene with animated Python code snippets
+  - `js/tech-background.js` - Alternative tech background effects controller
   - `js/animations.js` - GSAP-powered animations
   - `js/form-handler.js` - Form validation and API integration
-- **Styling**: `css/style.css` - Custom styles with dark theme
+- **Styling**: 
+  - `css/style.css` - Custom styles with dark theme
+  - `css/tech-background.css` - Additional tech visual effects and grid patterns
 - **External Libraries**: Three.js, GSAP, Typed.js (loaded via CDN)
+
+### Site Mode System (NEW)
+Dynamic mode switching between General Lead Capture and Workshop/Event Registration:
+
+**Mode Manager**: `js/site-mode-manager.js` - Central system that:
+- Loads current mode from backend configuration
+- Dynamically updates page content, forms, and modals
+- Handles workshop-specific fields and validation
+- Integrates with form handler for data collection
+
+**Admin Configuration**: Via admin panel at `/admin.html`:
+- Visual mode selector (General vs Workshop)
+- Customizable workshop settings (event name, date, title)
+- Real-time configuration saving via `/api/config`
+- Mode indicator in admin header
+
+**Mode-Specific Behavior**:
+- **General Mode**: Standard lead capture with course interest
+- **Workshop Mode**: Event registration with day preference, custom messaging
+
+**Frontend Integration**: 
+- Automatic text/field updates based on active mode
+- Dynamic form validation for workshop fields
+- Mode-specific success modal messages
+- Responsive design maintains across both modes
 
 ### Key Features
 - Interactive 3D background with floating Python code animations
@@ -71,6 +102,11 @@ NODE_ENV=development npm start    # Force development mode
 - `POST /api/leads` - Create new lead (with n8n webhook trigger)
 - `GET /api/health` - Health check endpoint
 - `POST /api/webhook/n8n` - n8n webhook receiver
+- **Site Configuration:**
+  - `GET /api/config` - Get current site mode configuration
+  - `POST /api/config` - Update site mode and workshop settings
+  - `PUT /api/config/mode` - Quick mode switch (general/workshop)
+  - `GET /api/config/status` - Public site mode status
 - Lead management endpoints (check `routes/leads.js` for complete list)
 
 ### Environment Configuration
@@ -78,12 +114,12 @@ Required environment variables (copy `.env.example` to `.env`):
 
 ```bash
 # Server Configuration
-PORT=3002                    # Server port
+PORT=3001                    # Server port (default from .env.example)
 NODE_ENV=development         # Environment mode
 
 # Database Configuration  
-DATABASE_PATH=backend/database/leads.db  # SQLite path (dev)
-DATABASE_URL=                           # PostgreSQL URL (production)
+DATABASE_PATH=./backend/database/leads.db  # SQLite path (dev) - note the ./ prefix from .env.example
+DATABASE_URL=                              # PostgreSQL URL (production)
 
 # Security
 CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
@@ -115,10 +151,14 @@ Lead table structure:
 - `email` (VARCHAR, UNIQUE) - Email address
 - `telefone` (VARCHAR) - Phone number
 - `idade` (INTEGER) - Age
-- `curso_pretendido` (VARCHAR) - Desired course
+- `curso` (VARCHAR) - Course/interest
 - `ip_address` (VARCHAR) - Client IP for analytics
 - `user_agent` (TEXT) - Browser info for analytics
 - `created_at` (DATETIME) - Timestamp
+- **New Workshop Fields:**
+  - `tipo_lead` (VARCHAR) - Lead type: 'geral' or 'workshop'
+  - `evento` (VARCHAR) - Event/workshop name
+  - `dia_evento` (VARCHAR) - Preferred event day (17/18)
 
 ### Security Implementation
 - Helmet.js for security headers (CSP disabled for external CDN resources)

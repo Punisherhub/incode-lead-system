@@ -253,14 +253,22 @@ class IncodeFormHandler {
         this.setSubmitLoading(true);
         
         try {
-            // Coletar dados do formulário
-            const formData = new FormData(this.form);
-            const leadData = {
-                nome: formData.get('nome').trim(),
-                email: formData.get('email').trim().toLowerCase(),
-                telefone: formData.get('telefone').replace(/\D/g, ''),
-                idade: parseInt(formData.get('idade'))
-            };
+            // Coletar dados do formulário (usando Site Mode Manager se disponível)
+            let leadData;
+            if (window.siteModeManager) {
+                leadData = window.siteModeManager.getFormData();
+            } else {
+                // Fallback se o mode manager não estiver disponível
+                const formData = new FormData(this.form);
+                leadData = {
+                    nome: formData.get('nome').trim(),
+                    email: formData.get('email').trim().toLowerCase(),
+                    telefone: formData.get('telefone').replace(/\D/g, ''),
+                    idade: parseInt(formData.get('idade')),
+                    tipo_lead: 'geral',
+                    curso_pretendido: 'Python'
+                };
+            }
             
             console.log('📤 Enviando dados:', { 
                 email: leadData.email,
