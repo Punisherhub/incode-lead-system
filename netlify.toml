@@ -19,6 +19,21 @@
   force = true
 
 [[redirects]]
+  from = "/admin"
+  to = "/admin.html"
+  status = 200
+
+[[redirects]]
+  from = "/admin/sorteio"
+  to = "/sorteio.html"
+  status = 200
+
+[[redirects]]
+  from = "/sorteio"
+  to = "/sorteio.html"
+  status = 200
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
