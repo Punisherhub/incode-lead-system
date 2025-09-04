@@ -128,7 +128,7 @@
             background: rgba(0, 212, 255, 0.2);
             padding: 20px;
             display: grid;
-            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr 100px;
+            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1fr 1.5fr 100px;
             gap: 15px;
             font-weight: bold;
             border-bottom: 2px solid rgba(0, 212, 255, 0.3);
@@ -137,7 +137,7 @@
         .table-row {
             padding: 15px 20px;
             display: grid;
-            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1.5fr 100px;
+            grid-template-columns: 60px 2fr 2fr 1.5fr 1fr 1fr 1fr 1.5fr 100px;
             gap: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             transition: background 0.3s ease;
@@ -178,6 +178,34 @@
         .lead-date {
             font-size: 0.85rem;
             opacity: 0.7;
+        }
+        
+        .lead-day {
+            text-align: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .day-17 {
+            color: #ff8800;
+            background: rgba(255, 136, 0, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 136, 0, 0.3);
+        }
+        
+        .day-18 {
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+            padding: 4px 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+        }
+        
+        .day-geral {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 0.8rem;
+            font-style: italic;
         }
         
         .status-badge {
@@ -222,6 +250,11 @@
             .table-header > div:not(:first-child),
             .table-row > div:not(:first-child) {
                 margin-left: 0;
+            }
+            
+            .lead-day {
+                text-align: left;
+                margin: 5px 0;
             }
         }
         
@@ -742,6 +775,7 @@
                 <div>📱 Telefone</div>
                 <div>🎂 Idade</div>
                 <div>📚 Curso</div>
+                <div>🎯 Dia Workshop</div>
                 <div>📅 Data</div>
                 <div>⚙️ Ações</div>
             </div>
@@ -832,22 +866,41 @@
                 return;
             }
             
-            const leadsHTML = filteredLeads.map(lead => `
-                <div class="table-row" data-lead-id="${lead.id}">
-                    <div class="lead-id">#${lead.id}</div>
-                    <div class="lead-name">${lead.nome}</div>
-                    <div class="lead-email">${lead.email}</div>
-                    <div class="lead-phone">${lead.telefone}</div>
-                    <div class="lead-age">${lead.idade}</div>
-                    <div class="lead-course">${lead.curso}</div>
-                    <div class="lead-date">${formatDate(lead.data_criacao)}</div>
-                    <div>
-                        <button class="delete-btn" onclick="deleteLead(${lead.id}, '${lead.nome.replace(/'/g, "\\'")}')">
-                            🗑️ Remover
-                        </button>
+            const leadsHTML = filteredLeads.map(lead => {
+                // Formatar dia do workshop
+                let diaWorkshop = '';
+                if (lead.dia_evento) {
+                    if (lead.dia_evento === '17') {
+                        diaWorkshop = `<span class="lead-day day-17">17 Set</span>`;
+                    } else if (lead.dia_evento === '18') {
+                        diaWorkshop = `<span class="lead-day day-18">18 Set</span>`;
+                    } else {
+                        diaWorkshop = `<span class="lead-day day-17">${lead.dia_evento} Set</span>`;
+                    }
+                } else if (lead.tipo_lead === 'workshop') {
+                    diaWorkshop = `<span class="lead-day day-geral">Não informado</span>`;
+                } else {
+                    diaWorkshop = `<span class="lead-day day-geral">Captação geral</span>`;
+                }
+                
+                return `
+                    <div class="table-row" data-lead-id="${lead.id}">
+                        <div class="lead-id">#${lead.id}</div>
+                        <div class="lead-name">${lead.nome}</div>
+                        <div class="lead-email">${lead.email}</div>
+                        <div class="lead-phone">${lead.telefone}</div>
+                        <div class="lead-age">${lead.idade}</div>
+                        <div class="lead-course">${lead.curso}</div>
+                        <div class="lead-day">${diaWorkshop}</div>
+                        <div class="lead-date">${formatDate(lead.data_criacao)}</div>
+                        <div>
+                            <button class="delete-btn" onclick="deleteLead(${lead.id}, '${lead.nome.replace(/'/g, "\\'")}')">
+                                🗑️ Remover
+                            </button>
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
             
             leadsContainer.innerHTML = leadsHTML;
         }

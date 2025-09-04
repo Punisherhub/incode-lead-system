@@ -186,7 +186,7 @@ class SiteModeManager {
         const select = diaEventoGroup.querySelector('select');
         select.style.cssText = `
             width: 100%;
-            padding: 15px 12px 8px 0;
+            padding: 20px 12px 8px 0;
             border: none;
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             background: transparent;
@@ -230,15 +230,15 @@ class SiteModeManager {
             /* Estilo específico para label do select */
             .input-group .select-label {
                 position: absolute;
-                top: -5px;
+                top: -8px;
                 left: 0;
-                transform: translateY(-20px) scale(0.8);
                 color: #00d4ff;
                 font-size: 12px;
                 font-weight: 500;
                 transition: all 0.3s ease;
                 pointer-events: none;
                 z-index: 2;
+                transform: scale(0.8);
             }
             
             /* Ajustar posicionamento do input-group para o select */
