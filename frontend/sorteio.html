@@ -20,6 +20,44 @@
             color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* LOGO FLUTUANTE NO FUNDO */
+        .floating-logos {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+        
+        .floating-logo {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            opacity: 0.15;
+            animation: floatDown linear infinite;
+        }
+        
+        @keyframes floatDown {
+            from {
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 0.15;
+            }
+            90% {
+                opacity: 0.15;
+            }
+            to {
+                transform: translateY(calc(100vh + 100px)) rotate(360deg);
+                opacity: 0;
+            }
         }
         
         .container {
@@ -27,6 +65,31 @@
             margin: 0 auto;
             padding: 20px;
             text-align: center;
+            position: relative;
+            z-index: 10;
+            transition: all 0.8s ease;
+        }
+        
+        /* SISTEMA DE FOCO NO CARROSSEL */
+        .container.focus-mode {
+            transform: scale(0.95);
+        }
+        
+        .container.focus-mode > *:not(.sorteio-section) {
+            opacity: 0.3;
+            filter: blur(2px);
+            transform: scale(0.98);
+        }
+        
+        .container.focus-mode .sorteio-section {
+            transform: scale(1.05);
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.3);
+            border-color: #00d4ff;
+        }
+        
+        .container.focus-mode .case-container {
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            border-width: 4px;
         }
         
         .header {
@@ -420,6 +483,9 @@
     </style>
 </head>
 <body>
+    <!-- LOGOS FLUTUANTES NO FUNDO -->
+    <div class="floating-logos" id="floatingLogos"></div>
+    
     <div class="container">
         <a href="/admin" class="back-link">← Voltar ao Admin</a>
         
@@ -487,6 +553,7 @@
                 this.initAudio();
                 this.bindEvents();
                 this.loadParticipants();
+                this.initFloatingLogos();
             }
             
             initElements() {
@@ -827,6 +894,9 @@
                 this.drawBtn.disabled = true;
                 this.drawBtn.innerHTML = '🎲 Sorteando...';
                 
+                // ATIVAR FOCO NO CARROSSEL
+                this.setCarouselFocus();
+                
                 // Som de abertura da case
                 this.playCaseOpenSound();
                 
@@ -1083,6 +1153,67 @@
                 this.isDrawing = false;
                 
                 console.log('🔄 Sorteio resetado - pronto para nova rodada');
+            }
+            
+            resetDraw() {
+                // REMOVER FOCO DO CARROSSEL
+                this.resetCarouselFocus();
+                
+                // Limpar carrossel
+                this.caseReelEl.innerHTML = '';
+                this.caseReelEl.style.transform = 'translateX(0)';
+                
+                // Hide winner announcement
+                this.winnerAnnouncementEl.classList.remove('show');
+                
+                // Reset buttons to original state
+                this.drawBtn.disabled = false;
+                this.drawBtn.innerHTML = '🎯 Sortear Participante';
+                this.drawBtn.style.background = 'linear-gradient(45deg, #00d4ff, #0099cc)';
+                this.drawBtn.style.color = 'white';
+                this.resetBtn.style.display = 'none';
+                
+                this.isDrawing = false;
+                
+                console.log('🔄 Sorteio resetado - pronto para nova rodada');
+            }
+            
+            // SISTEMA DE LOGOS FLUTUANTES
+            initFloatingLogos() {
+                this.createFloatingLogo();
+                setInterval(() => this.createFloatingLogo(), 3000); // Nova logo a cada 3 segundos
+            }
+            
+            createFloatingLogo() {
+                const floatingLogosContainer = document.getElementById('floatingLogos');
+                const logo = document.createElement('img');
+                logo.src = 'assets/images/logo-incode.png';
+                logo.className = 'floating-logo';
+                logo.style.left = Math.random() * (window.innerWidth - 80) + 'px';
+                logo.style.animationDuration = (8 + Math.random() * 4) + 's'; // 8-12 segundos
+                logo.style.animationDelay = Math.random() * 2 + 's'; // Delay aleatório
+                
+                floatingLogosContainer.appendChild(logo);
+                
+                // Remover logo após animação
+                setTimeout(() => {
+                    if (logo.parentNode) {
+                        logo.parentNode.removeChild(logo);
+                    }
+                }, 15000);
+            }
+            
+            // SISTEMA DE FOCO NO CARROSSEL
+            setCarouselFocus() {
+                const container = document.querySelector('.container');
+                container.classList.add('focus-mode');
+                console.log('🎯 Foco no carrossel ativado');
+            }
+            
+            resetCarouselFocus() {
+                const container = document.querySelector('.container');
+                container.classList.remove('focus-mode');
+                console.log('🔄 Foco no carrossel removido');
             }
             
             showMegaConfetti() {
