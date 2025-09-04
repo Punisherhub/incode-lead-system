@@ -475,16 +475,16 @@
             font-weight: bold;
         }
         
-        .mode-badge.general {
+        .mode-badge.ativo {
             background: rgba(0, 255, 136, 0.2);
             color: #00ff88;
             border: 1px solid #00ff88;
         }
         
-        .mode-badge.workshop {
-            background: rgba(255, 136, 0, 0.2);
-            color: #ff8800;
-            border: 1px solid #ff8800;
+        .mode-badge.inativo {
+            background: rgba(255, 71, 87, 0.2);
+            color: #ff4757;
+            border: 1px solid #ff4757;
         }
         
         .mode-description {
@@ -618,17 +618,7 @@
             display: none;
         }
         
-        /* ========== SISTEMA DE SORTEIO ========== */
-        .sorteio-section {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            position: relative;
-            overflow: hidden;
-        }
+        /* Sorteio CSS removido - agora usa página separada */
         
         .sorteio-section::before {
             content: '';
@@ -991,7 +981,7 @@
                 <div class="mode-option active" data-mode="general" id="generalModeOption">
                     <div class="mode-header">
                         <span class="mode-name">🎯 Captação Geral</span>
-                        <span class="mode-badge general">ATIVO</span>
+                        <span class="mode-badge ativo">ATIVO</span>
                     </div>
                     <p class="mode-description">
                         Modo padrão para captação de leads interessados nos cursos da Incode Academy.
@@ -1010,7 +1000,7 @@
                 <div class="mode-option" data-mode="workshop" id="workshopModeOption">
                     <div class="mode-header">
                         <span class="mode-name">🎓 Workshop/Evento</span>
-                        <span class="mode-badge workshop">INATIVO</span>
+                        <span class="mode-badge inativo">INATIVO</span>
                     </div>
                     <p class="mode-description">
                         Modo específico para inscrições em workshops, eventos e cursos específicos.
@@ -1066,81 +1056,6 @@
             </div>
         </div>
         
-        <!-- Seção de Sorteio -->
-        <div class="sorteio-section">
-            <h2 class="sorteio-title">
-                🎰 Sistema de Sorteio em Tempo Real
-            </h2>
-            
-            <div class="sorteio-controls">
-                <!-- Filtros de Período -->
-                <div class="filter-group">
-                    <div class="filter-title">
-                        📅 Período dos Leads
-                    </div>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" data-filter="hoje">Hoje</button>
-                        <button class="filter-btn" data-filter="ontem">Ontem</button>
-                        <button class="filter-btn" data-filter="semana">Esta Semana</button>
-                        <button class="filter-btn" data-filter="mes">Este Mês</button>
-                        <button class="filter-btn" data-filter="todos">Todos</button>
-                    </div>
-                </div>
-                
-                <!-- Filtros de Tipo -->
-                <div class="filter-group">
-                    <div class="filter-title">
-                        🎯 Tipo de Lead
-                    </div>
-                    <div class="filter-buttons">
-                        <button class="filter-btn active" data-tipo="todos">Todos</button>
-                        <button class="filter-btn" data-tipo="geral">Captação Geral</button>
-                        <button class="filter-btn" data-tipo="workshop">Workshop/Evento</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Display do Sorteio -->
-            <div class="sorteio-display" id="sorteioDisplay">
-                <div class="leads-counter" id="leadsCounter">
-                    Selecione um filtro para carregar os leads
-                </div>
-                
-                <div class="sorteio-wheel" id="sorteioWheel">
-                    <div class="nome-display" id="nomeDisplay">
-                        Pronto para sortear!
-                    </div>
-                </div>
-                
-                <!-- Lista de Participantes (Preview) -->
-                <div class="leads-list-preview" id="leadsPreview" style="display: none;">
-                    <h4 style="color: #00d4ff; margin-bottom: 10px;">Participantes do Sorteio:</h4>
-                    <div id="participantesList"></div>
-                </div>
-                
-                <!-- Controles do Sorteio -->
-                <div class="sorteio-actions">
-                    <button class="sorteio-btn btn-sortear" id="btnSortear" disabled>
-                        🎯 Iniciar Sorteio
-                    </button>
-                    <button class="sorteio-btn btn-parar" id="btnParar" style="display: none;">
-                        ⏹️ Parar Sorteio
-                    </button>
-                    <button class="sorteio-btn btn-resetar" id="btnResetar">
-                        🔄 Resetar
-                    </button>
-                </div>
-                
-                <!-- Anúncio do Vencedor -->
-                <div class="winner-announcement" id="winnerAnnouncement">
-                    <div class="winner-text">🏆 VENCEDOR!</div>
-                    <div class="winner-name" id="winnerName"></div>
-                    <button class="sorteio-btn btn-resetar" onclick="resetarSorteio()">
-                        ✨ Novo Sorteio
-                    </button>
-                </div>
-            </div>
-        </div>
         
         <div class="stats-grid" id="statsGrid">
             <div class="stat-card">
@@ -1167,7 +1082,7 @@
                 <option value="">📚 Todos os cursos</option>
             </select>
             <button class="refresh-btn" id="refreshBtn">🔄 Atualizar Dados</button>
-            <button class="refresh-btn" id="sorteioBtn" onclick="window.open('sorteio.html', '_blank')" style="background: linear-gradient(45deg, #ff6b35, #f7931e);">🎉 Sorteio ao Vivo</button>
+            <button class="refresh-btn" id="sorteioBtn" onclick="window.open('/sorteio', '_blank')" style="background: linear-gradient(45deg, #ff6b35, #f7931e);">🎉 Sorteio ao Vivo</button>
         </div>
         
         <div class="leads-table">
@@ -1612,19 +1527,26 @@
             workshopConfigDiv.classList.remove('active');
             
             // Atualizar badges
-            generalOption.querySelector('.mode-badge').textContent = 'INATIVO';
-            workshopOption.querySelector('.mode-badge').textContent = 'INATIVO';
+            const generalBadge = generalOption.querySelector('.mode-badge');
+            const workshopBadge = workshopOption.querySelector('.mode-badge');
+            
+            generalBadge.textContent = 'INATIVO';
+            generalBadge.className = 'mode-badge inativo';
+            workshopBadge.textContent = 'INATIVO';
+            workshopBadge.className = 'mode-badge inativo';
             
             if (currentMode === 'general') {
                 generalOption.classList.add('active');
-                generalOption.querySelector('.mode-badge').textContent = 'ATIVO';
+                generalBadge.textContent = 'ATIVO';
+                generalBadge.className = 'mode-badge ativo';
                 
                 currentModeIndicator.className = 'current-mode-indicator general';
                 currentModeIndicator.innerHTML = '🎯 Modo: Captação Geral';
                 
             } else if (currentMode === 'workshop') {
                 workshopOption.classList.add('active');
-                workshopOption.querySelector('.mode-badge').textContent = 'ATIVO';
+                workshopBadge.textContent = 'ATIVO';
+                workshopBadge.className = 'mode-badge ativo';
                 workshopConfigDiv.classList.add('active');
                 
                 currentModeIndicator.className = 'current-mode-indicator workshop';
@@ -1663,12 +1585,7 @@
             saveConfigBtn.addEventListener('click', saveSiteConfig);
         }
         
-        // ========== SISTEMA DE SORTEIO ==========
-        
-        let sorteioLeads = [];
-        let sorteioAtivo = false;
-        let intervaloSorteio = null;
-        let filtroAtual = { periodo: 'hoje', tipo: 'todos' };
+        // Sorteio removido - agora usa página separada
         
         // Carregar leads filtrados para sorteio
         async function carregarLeadsSorteio() {
@@ -1901,14 +1818,7 @@
         checkAuth();
         resetInactivityTimer();
         setupConfigEventListeners();
-        setupSorteioEventListeners();
         
-        // Carregar leads inicial após login
-        setTimeout(() => {
-            if (isLoggedIn) {
-                carregarLeadsSorteio();
-            }
-        }, 1000);
     </script>
 </body>
 </html><!-- Force rebuild Thu, Sep  4, 2025  1:05:40 PM -->

@@ -44,7 +44,7 @@ app.use(cors(corsOptions));
 // Rate limiting
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: process.env.API_RATE_LIMIT || 100, // máximo de requests por IP
+    max: process.env.API_RATE_LIMIT || 1000, // máximo de requests por IP (aumentado)
     message: {
         error: 'Muitas tentativas. Tente novamente em 15 minutos.',
         code: 'RATE_LIMIT_EXCEEDED'
@@ -91,6 +91,15 @@ app.post('/api/webhook/n8n', (req, res) => {
         message: 'Webhook recebido com sucesso',
         timestamp: new Date().toISOString()
     });
+});
+
+// Rotas específicas para páginas HTML
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/admin.html'));
+});
+
+app.get('/sorteio', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/sorteio.html'));
 });
 
 // Servir a aplicação frontend
