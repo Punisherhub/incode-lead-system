@@ -174,7 +174,7 @@ class SiteModeManager {
                 <option value="17">17 de Setembro</option>
                 <option value="18">18 de Setembro</option>
             </select>
-            <label for="dia_evento">Dia de Preferência</label>
+            <label for="dia_evento" class="select-label">Dia de Preferência</label>
             <span class="input-line"></span>
         `;
         
@@ -186,17 +186,68 @@ class SiteModeManager {
         const select = diaEventoGroup.querySelector('select');
         select.style.cssText = `
             width: 100%;
-            padding: 15px 0 8px 0;
+            padding: 15px 12px 8px 0;
             border: none;
             border-bottom: 2px solid rgba(255, 255, 255, 0.2);
             background: transparent;
             color: white;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 16px;
             outline: none;
             transition: all 0.3s ease;
             appearance: none;
             cursor: pointer;
+            position: relative;
+            z-index: 1;
         `;
+        
+        // Estilizar as opções do select
+        const style = document.createElement('style');
+        style.textContent = `
+            select#dia_evento option {
+                background: #1a1a2e !important;
+                color: white !important;
+                padding: 10px !important;
+                font-size: 16px !important;
+                border: none !important;
+            }
+            
+            select#dia_evento option:hover {
+                background: #00d4ff !important;
+                color: #000 !important;
+            }
+            
+            select#dia_evento option:checked {
+                background: #00d4ff !important;
+                color: #000 !important;
+            }
+            
+            select#dia_evento:focus {
+                border-bottom-color: #00d4ff;
+                box-shadow: 0 2px 0 #00d4ff;
+            }
+            
+            /* Estilo específico para label do select */
+            .input-group .select-label {
+                position: absolute;
+                top: -5px;
+                left: 0;
+                transform: translateY(-20px) scale(0.8);
+                color: #00d4ff;
+                font-size: 12px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                pointer-events: none;
+                z-index: 2;
+            }
+            
+            /* Ajustar posicionamento do input-group para o select */
+            .input-group:has(select) {
+                position: relative;
+                margin-bottom: 25px;
+            }
+        `;
+        document.head.appendChild(style);
         
         // Evento de mudança para label
         select.addEventListener('change', function() {
@@ -248,8 +299,10 @@ class SiteModeManager {
                         </svg>
                     </div>
                 </div>
-                <h3>Sua inscrição foi enviada! 🎓</h3>
-                <p>A Incode Academy agradece seu interesse. Sua inscrição não garante vaga para o workshop devido às vagas limitadas. Os selecionados a participar receberão contato da nossa equipe confirmando sua presença, se selecionado!</p>
+                <h3>Inscrição realizada com sucesso! 🎓</h3>
+                <p><strong>Obrigado pelo seu interesse no workshop!</strong></p>
+                <p>Sua inscrição foi registrada. Temos apenas <strong>16 vagas para cada dia</strong> (17 e 18 de setembro), por isso nossa equipe analisará as inscrições e entrará em contato apenas com os selecionados.</p>
+                <p style="color: #00d4ff; font-weight: 500; margin-top: 15px;">📧 Fique atento ao seu e-mail nos próximos dias!</p>
                 <button id="close-modal" class="modal-btn">Continuar</button>
             `;
             
