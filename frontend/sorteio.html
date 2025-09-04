@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sorteio - Incode Academy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            color: #ffffff;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header {
+            margin-bottom: 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .logo {
+            width: 120px;
+            height: auto;
+            margin-bottom: 20px;
+            filter: brightness(1.2);
+        }
+        
+        .header h1 {
+            color: #00d4ff;
+            font-size: 3rem;
+            margin-bottom: 15px;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+            font-weight: 700;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            color: #00d4ff;
+            text-decoration: none;
+            padding: 8px 16px;
+            border: 1px solid #00d4ff;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .back-link:hover {
+            background: #00d4ff;
+            color: #0a0a0a;
+            transform: translateY(-2px);
+        }
+        
+        .sorteio-section {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 40px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .participant-count {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+            color: #00d4ff;
+            font-weight: 600;
+        }
+        
+        .case-container {
+            height: 200px;
+            background: rgba(0, 212, 255, 0.1);
+            border: 3px solid #00d4ff;
+            border-radius: 15px;
+            margin: 30px 0;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+        }
+        
+        .case-selector {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 80%;
+            background: linear-gradient(to bottom, transparent 0%, #ff0040 45%, #ff0040 55%, transparent 100%);
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 20px rgba(255, 0, 64, 0.8);
+        }
+        
+        .case-selector::before {
+            content: '▼';
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff0040;
+            font-size: 20px;
+            text-shadow: 0 0 10px rgba(255, 0, 64, 0.8);
+        }
+        
+        .case-reel {
+            display: flex;
+            height: 100%;
+            transition: transform cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            gap: 10px;
+            padding: 20px;
+            align-items: center;
+        }
+        
+        .case-item {
+            min-width: 180px;
+            height: 120px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            position: relative;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        
+        .case-item.winner {
+            border-color: #00d4ff;
+            box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.1));
+            transform: scale(1.05);
+        }
+        
+        .case-item-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #ffffff;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            padding: 0 10px;
+            line-height: 1.3;
+        }
+        
+        .case-item-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 8px;
+            text-shadow: none;
+        }
+        
+        .case-glow {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(255, 255, 255, 0.4) 50%, 
+                transparent 100%
+            );
+            animation: shine 2s infinite;
+        }
+        
+        @keyframes shine {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .placeholder-text {
+            font-size: 1.5rem;
+            opacity: 0.6;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+        }
+        
+        .winner-announcement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 20;
+            backdrop-filter: blur(10px);
+        }
+        
+        .winner-announcement.show {
+            display: flex;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .winner-text {
+            font-size: 1.2rem;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        
+        .winner-name {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.6);
+        }
+        
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #00d4ff;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-btn {
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .filter-btn.active {
+            background: #00d4ff;
+            color: #0a0a0a;
+            border-color: #00d4ff;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00d4ff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .header h1 {
+                font-size: 2.2rem;
+            }
+            
+            .sorteio-section {
+                padding: 25px;
+            }
+            
+            .case-container {
+                height: 160px;
+            }
+            
+            .case-item {
+                min-width: 140px;
+                height: 100px;
+            }
+            
+            .case-item-name {
+                font-size: 0.9rem;
+            }
+            
+            .case-item-avatar {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
+            
+            .winner-name {
+                font-size: 1.8rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .filters {
+                gap: 8px;
+            }
+            
+            .filter-btn {
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="admin.html" class="back-link">← Voltar ao Admin</a>
+        
+        <div class="header">
+            <img src="assets/images/logo-incode.png" alt="Incode Academy" class="logo">
+            <h1>🎉 Sorteio Incode Academy</h1>
+            <p class="subtitle">Sistema de sorteio para eventos ao vivo</p>
+        </div>
+        
+        <div class="sorteio-section">
+            <div class="participant-count" id="participantCount">
+                <span class="loading"></span> Carregando participantes...
+            </div>
+            
+            <div class="filters" id="filters">
+                <button class="filter-btn active" data-filter="all">Todos os Leads</button>
+                <button class="filter-btn" data-filter="geral">Leads Gerais</button>
+                <button class="filter-btn" data-filter="workshop">Workshop/Evento</button>
+            </div>
+            
+            <div class="case-container">
+                <div class="case-selector"></div>
+                <div class="case-reel" id="caseReel">
+                    <div class="placeholder-text">Clique em "Sortear" para começar!</div>
+                </div>
+                <div class="winner-announcement" id="winnerAnnouncement">
+                    <div class="winner-text">🎉 Parabéns!</div>
+                    <div class="winner-name" id="finalWinnerName"></div>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <button class="btn btn-primary" id="drawBtn">🎯 Sortear Participante</button>
+                <button class="btn btn-secondary" id="resetBtn" style="display: none;">🔄 Novo Sorteio</button>
+                <button class="btn btn-secondary" id="audioToggle" title="Ligar/Desligar Som">🔊</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        class SorteioSystem {
+            constructor() {
+                this.participants = [];
+                this.filteredParticipants = [];
+                this.currentFilter = 'all';
+                this.isDrawing = false;
+                this.audioContext = null;
+                this.audioEnabled = true;
+                
+                this.initElements();
+                this.initAudio();
+                this.bindEvents();
+                this.loadParticipants();
+            }
+            
+            initElements() {
+                this.participantCountEl = document.getElementById('participantCount');
+                this.caseReelEl = document.getElementById('caseReel');
+                this.winnerAnnouncementEl = document.getElementById('winnerAnnouncement');
+                this.finalWinnerNameEl = document.getElementById('finalWinnerName');
+                this.drawBtn = document.getElementById('drawBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.audioToggleBtn = document.getElementById('audioToggle');
+                this.filtersEl = document.getElementById('filters');
+            }
+            
+            initAudio() {
+                // Inicializar Web Audio API
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                } catch (error) {
+                    console.warn('Web Audio API não suportada:', error);
+                }
+            }
+            
+            toggleAudio() {
+                this.audioEnabled = !this.audioEnabled;
+                this.audioToggleBtn.textContent = this.audioEnabled ? '🔊' : '🔇';
+                this.audioToggleBtn.title = this.audioEnabled ? 'Desligar Som' : 'Ligar Som';
+            }
+            
+            // Som de case opening - tick dos itens passando
+            playTickSound(frequency = 800, duration = 0.05) {
+                if (!this.audioContext || !this.audioEnabled) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+                oscillator.type = 'square';
+                
+                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + duration);
+            }
+            
+            // Som de abertura da case (início do sorteio)
+            playCaseOpenSound() {
+                if (!this.audioContext || !this.audioEnabled) return;
+                
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+                
+                oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(600, this.audioContext.currentTime + 0.3);
+                oscillator.type = 'sawtooth';
+                
+                gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3);
+                
+                oscillator.start(this.audioContext.currentTime);
+                oscillator.stop(this.audioContext.currentTime + 0.3);
+            }
+            
+            // Som de vitória (quando para no vencedor)
+            playWinSound() {
+                if (!this.audioContext || !this.audioEnabled) return;
+                
+                // Som principal de vitória
+                const oscillator1 = this.audioContext.createOscillator();
+                const gainNode1 = this.audioContext.createGain();
+                
+                oscillator1.connect(gainNode1);
+                gainNode1.connect(this.audioContext.destination);
+                
+                oscillator1.frequency.setValueAtTime(523, this.audioContext.currentTime); // C5
+                oscillator1.frequency.setValueAtTime(659, this.audioContext.currentTime + 0.1); // E5
+                oscillator1.frequency.setValueAtTime(784, this.audioContext.currentTime + 0.2); // G5
+                oscillator1.type = 'sine';
+                
+                gainNode1.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode1.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 1.5);
+                
+                oscillator1.start(this.audioContext.currentTime);
+                oscillator1.stop(this.audioContext.currentTime + 1.5);
+                
+                // Efeito adicional de brilho
+                setTimeout(() => {
+                    const oscillator2 = this.audioContext.createOscillator();
+                    const gainNode2 = this.audioContext.createGain();
+                    
+                    oscillator2.connect(gainNode2);
+                    gainNode2.connect(this.audioContext.destination);
+                    
+                    oscillator2.frequency.setValueAtTime(1047, this.audioContext.currentTime); // C6
+                    oscillator2.type = 'triangle';
+                    
+                    gainNode2.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+                    gainNode2.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.8);
+                    
+                    oscillator2.start(this.audioContext.currentTime);
+                    oscillator2.stop(this.audioContext.currentTime + 0.8);
+                }, 100);
+            }
+            
+            bindEvents() {
+                this.drawBtn.addEventListener('click', () => {
+                    // Ativar contexto de áudio na interação do usuário
+                    if (this.audioContext && this.audioContext.state === 'suspended') {
+                        this.audioContext.resume();
+                    }
+                    this.startDraw();
+                });
+                this.resetBtn.addEventListener('click', () => this.resetDraw());
+                this.audioToggleBtn.addEventListener('click', () => this.toggleAudio());
+                
+                this.filtersEl.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('filter-btn')) {
+                        this.setFilter(e.target.dataset.filter);
+                    }
+                });
+            }
+            
+            async loadParticipants() {
+                try {
+                    const response = await fetch('/api/leads');
+                    if (!response.ok) throw new Error('Erro ao carregar participantes');
+                    
+                    this.participants = await response.json();
+                    this.updateFilteredParticipants();
+                    this.updateParticipantCount();
+                } catch (error) {
+                    console.error('Erro:', error);
+                    this.participantCountEl.innerHTML = '❌ Erro ao carregar participantes';
+                }
+            }
+            
+            setFilter(filter) {
+                this.currentFilter = filter;
+                
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                });
+                
+                this.updateFilteredParticipants();
+                this.updateParticipantCount();
+                this.resetDraw();
+            }
+            
+            updateFilteredParticipants() {
+                switch (this.currentFilter) {
+                    case 'geral':
+                        this.filteredParticipants = this.participants.filter(p => 
+                            !p.tipo_lead || p.tipo_lead === 'geral'
+                        );
+                        break;
+                    case 'workshop':
+                        this.filteredParticipants = this.participants.filter(p => 
+                            p.tipo_lead === 'workshop'
+                        );
+                        break;
+                    default:
+                        this.filteredParticipants = [...this.participants];
+                }
+            }
+            
+            updateParticipantCount() {
+                const total = this.filteredParticipants.length;
+                const filterText = {
+                    'all': 'Total de Participantes',
+                    'geral': 'Leads Gerais',
+                    'workshop': 'Participantes do Workshop'
+                };
+                
+                this.participantCountEl.innerHTML = `
+                    📊 ${filterText[this.currentFilter]}: <strong>${total}</strong>
+                `;
+            }
+            
+            createCaseItems(participants, winnerIndex) {
+                const items = [];
+                const totalItems = 50; // Número de itens na reel
+                
+                // Preencher com participantes duplicados para criar a sensação de abundância
+                for (let i = 0; i < totalItems; i++) {
+                    const participant = participants[i % participants.length];
+                    const isWinner = i === winnerIndex;
+                    
+                    const item = document.createElement('div');
+                    item.className = `case-item ${isWinner ? 'winner' : ''}`;
+                    
+                    const avatar = document.createElement('div');
+                    avatar.className = 'case-item-avatar';
+                    avatar.textContent = participant.nome.charAt(0).toUpperCase();
+                    
+                    const name = document.createElement('div');
+                    name.className = 'case-item-name';
+                    name.textContent = participant.nome;
+                    
+                    if (!isWinner) {
+                        const glow = document.createElement('div');
+                        glow.className = 'case-glow';
+                        item.appendChild(glow);
+                    }
+                    
+                    item.appendChild(avatar);
+                    item.appendChild(name);
+                    items.push(item);
+                }
+                
+                return items;
+            }
+            
+            async startDraw() {
+                if (this.isDrawing || this.filteredParticipants.length === 0) return;
+                
+                this.isDrawing = true;
+                this.drawBtn.disabled = true;
+                this.drawBtn.innerHTML = '🎲 Sorteando...';
+                
+                // Som de abertura da case
+                this.playCaseOpenSound();
+                
+                // Hide winner announcement
+                this.winnerAnnouncementEl.classList.remove('show');
+                
+                // Escolher vencedor aleatório
+                const winnerIndex = Math.floor(Math.random() * this.filteredParticipants.length);
+                const winner = this.filteredParticipants[winnerIndex];
+                
+                // Posição do vencedor na reel (deve estar próximo do centro)
+                const winnerPosition = 25; // Item no meio da reel
+                
+                // Criar itens da reel
+                const caseItems = this.createCaseItems(this.filteredParticipants, winnerPosition);
+                
+                // Limpar e adicionar itens à reel
+                this.caseReelEl.innerHTML = '';
+                caseItems.forEach(item => this.caseReelEl.appendChild(item));
+                
+                // Calcular posição final (centralizar o vencedor)
+                const itemWidth = 190; // width + gap
+                const containerWidth = this.caseReelEl.parentElement.offsetWidth;
+                const finalPosition = -(winnerPosition * itemWidth) + (containerWidth / 2) - (itemWidth / 2);
+                
+                // Começar da esquerda e fazer múltiplas voltas
+                const startPosition = containerWidth;
+                const extraDistance = itemWidth * caseItems.length * 3; // 3 voltas completas
+                const totalDistance = startPosition + extraDistance - finalPosition;
+                
+                // Definir posição inicial
+                this.caseReelEl.style.transform = `translateX(${startPosition}px)`;
+                this.caseReelEl.style.transition = 'none';
+                
+                // Iniciar sons de tick durante a animação
+                this.startTickSounds();
+                
+                // Pequeno delay para garantir que a posição inicial seja aplicada
+                setTimeout(() => {
+                    // Aplicar animação com easing realista
+                    this.caseReelEl.style.transition = 'transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    this.caseReelEl.style.transform = `translateX(${finalPosition}px)`;
+                    
+                    // Quando a animação terminar, mostrar o vencedor
+                    setTimeout(() => {
+                        this.stopTickSounds();
+                        this.showWinner(winner);
+                    }, 4100); // Ligeiramente após a animação terminar
+                }, 100);
+            }
+            
+            startTickSounds() {
+                this.tickInterval = setInterval(() => {
+                    // Frequência variável para criar sensação de velocidade
+                    const randomFreq = 600 + Math.random() * 400;
+                    this.playTickSound(randomFreq, 0.03);
+                }, 80); // Som a cada 80ms inicialmente
+                
+                // Desacelerar os ticks conforme a animação progride
+                setTimeout(() => {
+                    clearInterval(this.tickInterval);
+                    this.tickInterval = setInterval(() => {
+                        const randomFreq = 500 + Math.random() * 300;
+                        this.playTickSound(randomFreq, 0.04);
+                    }, 120);
+                }, 1500);
+                
+                setTimeout(() => {
+                    clearInterval(this.tickInterval);
+                    this.tickInterval = setInterval(() => {
+                        const randomFreq = 400 + Math.random() * 200;
+                        this.playTickSound(randomFreq, 0.05);
+                    }, 200);
+                }, 3000);
+            }
+            
+            stopTickSounds() {
+                if (this.tickInterval) {
+                    clearInterval(this.tickInterval);
+                    this.tickInterval = null;
+                }
+            }
+            
+            showWinner(winner) {
+                // Som de vitória
+                this.playWinSound();
+                
+                // Destacar o item vencedor
+                const winnerItem = this.caseReelEl.querySelector('.case-item.winner');
+                if (winnerItem) {
+                    winnerItem.style.borderColor = '#00d4ff';
+                    winnerItem.style.boxShadow = '0 0 40px rgba(0, 212, 255, 0.8)';
+                    winnerItem.style.transform = 'scale(1.1)';
+                }
+                
+                // Mostrar anúncio do vencedor
+                setTimeout(() => {
+                    this.finalWinnerNameEl.textContent = winner.nome;
+                    this.winnerAnnouncementEl.classList.add('show');
+                    
+                    // Show confetti
+                    this.showConfetti();
+                    
+                    // Update buttons
+                    this.drawBtn.innerHTML = '🎉 Parabéns!';
+                    this.resetBtn.style.display = 'inline-block';
+                    
+                    this.isDrawing = false;
+                    
+                    // Log winner for reference
+                    console.log('Vencedor:', winner);
+                }, 1000);
+            }
+            
+            resetDraw() {
+                // Parar todos os sons
+                this.stopTickSounds();
+                
+                // Reset reel
+                this.caseReelEl.innerHTML = '<div class="placeholder-text">Clique em "Sortear" para começar!</div>';
+                this.caseReelEl.style.transform = 'translateX(0)';
+                this.caseReelEl.style.transition = 'none';
+                
+                // Hide winner announcement
+                this.winnerAnnouncementEl.classList.remove('show');
+                
+                // Reset buttons
+                this.drawBtn.disabled = false;
+                this.drawBtn.innerHTML = '🎯 Sortear Participante';
+                this.resetBtn.style.display = 'none';
+                
+                this.isDrawing = false;
+            }
+            
+            showConfetti() {
+                const colors = ['#00d4ff', '#ffffff', '#0099cc', '#66e0ff'];
+                
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        const confetti = document.createElement('div');
+                        confetti.className = 'confetti';
+                        confetti.style.left = Math.random() * window.innerWidth + 'px';
+                        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+                        confetti.style.animationName = 'fall';
+                        
+                        document.body.appendChild(confetti);
+                        
+                        setTimeout(() => {
+                            confetti.remove();
+                        }, 5000);
+                    }, i * 50);
+                }
+            }
+        }
+        
+        // Add CSS for confetti animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                from {
+                    transform: translateY(-100vh) rotate(0deg);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateY(100vh) rotate(720deg);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Initialize when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            new SorteioSystem();
+        });
+    </script>
+</body>
+</html>

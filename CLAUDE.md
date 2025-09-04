@@ -47,6 +47,9 @@ NODE_ENV=development npm start    # Force development mode
   - Migration scripts: `database/migrate.js`
 - **Models**: `models/Lead.js` - Lead data model with validation
 - **Routes**: `routes/leads.js` - API endpoints for lead management
+- **Middleware**: `middleware/` - Custom middleware components
+- **Data**: `data/` - Application data storage
+- **Logs**: `logs/` - Application logging directory
 - **Default Port**: 3001 (configurable via .env PORT, 3002 mentioned in some docs but 3001 in .env.example)
 
 ### Frontend Structure (`frontend/`)
@@ -198,12 +201,18 @@ incode-lead-system/
 │   │   ├── postgres.js       # PostgreSQL setup
 │   │   └── migrate.js        # Database migrations
 │   ├── models/Lead.js        # Lead data model
-│   └── routes/leads.js       # API routes
+│   ├── routes/leads.js       # API routes
+│   ├── middleware/           # Custom middleware components
+│   ├── data/                 # Application data storage
+│   └── logs/                 # Application logging directory
 ├── frontend/
 │   ├── index.html            # Main landing page
 │   ├── admin.html            # Admin dashboard
-│   ├── css/style.css         # Styling
-│   └── js/                   # JavaScript modules
+│   ├── css/
+│   │   ├── style.css         # Main styling
+│   │   └── tech-background.css  # Tech background effects
+│   ├── js/                   # JavaScript modules
+│   └── assets/               # Static assets (images, etc.)
 ├── docs/                     # Comprehensive documentation
 ├── netlify.toml             # Netlify deployment config
 ├── railway.json             # Railway deployment config
