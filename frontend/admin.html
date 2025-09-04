@@ -95,6 +95,12 @@
             backdrop-filter: blur(10px);
         }
         
+        .filter-select option {
+            background: #1a1a1a;
+            color: white;
+            padding: 8px;
+        }
+        
         .search-box::placeholder {
             color: rgba(255, 255, 255, 0.6);
         }
@@ -967,7 +973,7 @@
                     </span>
                 </div>
                 <div style="display: flex; gap: 10px;">
-                    <button id="sorteioBtn" onclick="window.open('/sorteio', '_blank')" class="logout-btn" style="background: linear-gradient(45deg, #ff6b35, #f7931e); border: 1px solid #ff6b35; color: white;">🎉 Sorteio ao Vivo</button>
+                    <button id="sorteioBtn" onclick="window.location.href='/admin/sorteio'" class="logout-btn" style="background: linear-gradient(45deg, #ff6b35, #f7931e); border: 1px solid #ff6b35; color: white;">🎉 Sorteio ao Vivo</button>
                     <button id="logoutBtn" class="logout-btn">🚪 Sair</button>
                 </div>
             </div>

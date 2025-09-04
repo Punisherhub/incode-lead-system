@@ -418,7 +418,7 @@
 </head>
 <body>
     <div class="container">
-        <a href="admin.html" class="back-link">← Voltar ao Admin</a>
+        <a href="/admin" class="back-link">← Voltar ao Admin</a>
         
         <div class="header">
             <img src="assets/images/logo-incode.png" alt="Incode Academy" class="logo">
@@ -432,9 +432,22 @@
             </div>
             
             <div class="filters" id="filters">
-                <button class="filter-btn active" data-filter="all">Todos os Leads</button>
-                <button class="filter-btn" data-filter="geral">Leads Gerais</button>
-                <button class="filter-btn" data-filter="workshop">Workshop/Evento</button>
+                <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                        <span style="color: #00d4ff; font-weight: 600; margin-right: 10px;">📅 Período:</span>
+                        <button class="filter-btn active" data-period="todos">Todos</button>
+                        <button class="filter-btn" data-period="hoje">Hoje</button>
+                        <button class="filter-btn" data-period="ontem">Ontem</button>
+                        <button class="filter-btn" data-period="semana">Esta Semana</button>
+                        <button class="filter-btn" data-period="mes">Este Mês</button>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                        <span style="color: #00d4ff; font-weight: 600; margin-right: 10px;">🎯 Tipo:</span>
+                        <button class="filter-btn active" data-type="all">Todos os Tipos</button>
+                        <button class="filter-btn" data-type="geral">Leads Gerais</button>
+                        <button class="filter-btn" data-type="workshop">Workshop/Evento</button>
+                    </div>
+                </div>
             </div>
             
             <div class="case-container">
@@ -461,7 +474,8 @@
             constructor() {
                 this.participants = [];
                 this.filteredParticipants = [];
-                this.currentFilter = 'all';
+                this.currentPeriodFilter = 'todos';
+                this.currentTypeFilter = 'all';
                 this.isDrawing = false;
                 this.audioContext = null;
                 this.audioEnabled = true;
@@ -593,7 +607,11 @@
                 
                 this.filtersEl.addEventListener('click', (e) => {
                     if (e.target.classList.contains('filter-btn')) {
-                        this.setFilter(e.target.dataset.filter);
+                        if (e.target.dataset.period) {
+                            this.setPeriodFilter(e.target.dataset.period);
+                        } else if (e.target.dataset.type) {
+                            this.setTypeFilter(e.target.dataset.type);
+                        }
                     }
                 });
             }
@@ -625,12 +643,25 @@
                 }
             }
             
-            setFilter(filter) {
-                this.currentFilter = filter;
+            setPeriodFilter(period) {
+                this.currentPeriodFilter = period;
                 
-                // Update active button
-                document.querySelectorAll('.filter-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                // Update active button for period
+                document.querySelectorAll('[data-period]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.period === period);
+                });
+                
+                this.updateFilteredParticipants();
+                this.updateParticipantCount();
+                this.resetDraw();
+            }
+            
+            setTypeFilter(type) {
+                this.currentTypeFilter = type;
+                
+                // Update active button for type
+                document.querySelectorAll('[data-type]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.type === type);
                 });
                 
                 this.updateFilteredParticipants();
@@ -639,43 +670,127 @@
             }
             
             updateFilteredParticipants() {
-                switch (this.currentFilter) {
-                    case 'geral':
-                        this.filteredParticipants = this.participants.filter(p => 
-                            !p.tipo_lead || p.tipo_lead === 'geral'
-                        );
-                        break;
-                    case 'workshop':
-                        this.filteredParticipants = this.participants.filter(p => 
-                            p.tipo_lead === 'workshop'
-                        );
-                        break;
-                    default:
-                        this.filteredParticipants = [...this.participants];
+                let filtered = [...this.participants];
+                
+                // FILTRO POR PERÍODO
+                if (this.currentPeriodFilter !== 'todos') {
+                    const now = new Date();
+                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                    
+                    filtered = filtered.filter(p => {
+                        const leadDate = new Date(p.created_at || p.data_criacao || p.createdAt);
+                        const leadDay = new Date(leadDate.getFullYear(), leadDate.getMonth(), leadDate.getDate());
+                        
+                        switch (this.currentPeriodFilter) {
+                            case 'hoje':
+                                return leadDay.getTime() === today.getTime();
+                            
+                            case 'ontem':
+                                const yesterday = new Date(today);
+                                yesterday.setDate(yesterday.getDate() - 1);
+                                return leadDay.getTime() === yesterday.getTime();
+                            
+                            case 'semana':
+                                const weekAgo = new Date(today);
+                                weekAgo.setDate(weekAgo.getDate() - 7);
+                                return leadDate >= weekAgo;
+                            
+                            case 'mes':
+                                const monthAgo = new Date(today);
+                                monthAgo.setMonth(monthAgo.getMonth() - 1);
+                                return leadDate >= monthAgo;
+                            
+                            default:
+                                return true;
+                        }
+                    });
                 }
+                
+                // FILTRO POR TIPO
+                if (this.currentTypeFilter !== 'all') {
+                    filtered = filtered.filter(p => {
+                        switch (this.currentTypeFilter) {
+                            case 'geral':
+                                return !p.tipo_lead || p.tipo_lead === 'geral';
+                            case 'workshop':
+                                return p.tipo_lead === 'workshop';
+                            default:
+                                return true;
+                        }
+                    });
+                }
+                
+                this.filteredParticipants = filtered;
+                
+                console.log(`📊 Filtros aplicados - Período: ${this.currentPeriodFilter}, Tipo: ${this.currentTypeFilter}`);
+                console.log(`🎯 Participantes filtrados: ${this.filteredParticipants.length} de ${this.participants.length} total`);
             }
             
             updateParticipantCount() {
                 const total = this.filteredParticipants.length;
-                const filterText = {
-                    'all': 'Total de Participantes',
-                    'geral': 'Leads Gerais',
-                    'workshop': 'Participantes do Workshop'
+                const totalOriginal = this.participants.length;
+                
+                const periodText = {
+                    'todos': 'Todos os períodos',
+                    'hoje': 'Hoje',
+                    'ontem': 'Ontem',
+                    'semana': 'Esta semana',
+                    'mes': 'Este mês'
                 };
                 
+                const typeText = {
+                    'all': 'Todos os tipos',
+                    'geral': 'Leads gerais',
+                    'workshop': 'Workshop/Evento'
+                };
+                
+                const currentPeriodText = periodText[this.currentPeriodFilter] || 'Período selecionado';
+                const currentTypeText = typeText[this.currentTypeFilter] || 'Tipo selecionado';
+                
                 this.participantCountEl.innerHTML = `
-                    📊 ${filterText[this.currentFilter]}: <strong>${total}</strong>
+                    <div style="text-align: center;">
+                        <div style="font-size: 1.3rem; margin-bottom: 5px;">
+                            🎯 <strong>${total}</strong> participantes selecionados
+                        </div>
+                        <div style="font-size: 0.9rem; opacity: 0.8;">
+                            📅 ${currentPeriodText} • 🎪 ${currentTypeText}
+                        </div>
+                        ${total !== totalOriginal ? `<div style="font-size: 0.8rem; opacity: 0.6; margin-top: 3px;">de ${totalOriginal} leads totais</div>` : ''}
+                    </div>
                 `;
+                
+                // Desabilitar sorteio se não houver participantes
+                if (this.drawBtn) {
+                    this.drawBtn.disabled = total === 0;
+                    if (total === 0) {
+                        this.drawBtn.innerHTML = '❌ Nenhum participante';
+                    } else {
+                        this.drawBtn.innerHTML = '🎯 Sortear Participante';
+                    }
+                }
             }
             
-            createCaseItems(participants, winnerIndex) {
+            createCaseItems(participants, winner, winnerPosition) {
                 const items = [];
-                const totalItems = 50; // Número de itens na reel
+                const totalItems = 80; // Aumentado para mais variedade
                 
-                // Preencher com participantes duplicados para criar a sensação de abundância
+                // Criar array de participantes embaralhados para maior aleatoriedade visual
+                const shuffledParticipants = [];
                 for (let i = 0; i < totalItems; i++) {
-                    const participant = participants[i % participants.length];
-                    const isWinner = i === winnerIndex;
+                    if (i === winnerPosition) {
+                        // Na posição do vencedor, colocar o vencedor real
+                        shuffledParticipants.push(winner);
+                    } else {
+                        // Nas outras posições, embaralhar os participantes
+                        const randomIndex = Math.floor(Math.random() * participants.length);
+                        shuffledParticipants.push(participants[randomIndex]);
+                    }
+                }
+                
+                // Criar os elementos DOM
+                for (let i = 0; i < totalItems; i++) {
+                    const participant = shuffledParticipants[i];
+                    const isWinner = i === winnerPosition;
                     
                     const item = document.createElement('div');
                     item.className = `case-item ${isWinner ? 'winner' : ''}`;
@@ -715,15 +830,30 @@
                 // Hide winner announcement
                 this.winnerAnnouncementEl.classList.remove('show');
                 
-                // Escolher vencedor aleatório
-                const winnerIndex = Math.floor(Math.random() * this.filteredParticipants.length);
+                // ALEATORIEDADE 100% JUSTA - Usar crypto.getRandomValues se disponível
+                let randomValue;
+                if (window.crypto && window.crypto.getRandomValues) {
+                    const array = new Uint32Array(1);
+                    window.crypto.getRandomValues(array);
+                    randomValue = array[0] / (0xffffffff + 1); // Converter para 0-1
+                } else {
+                    randomValue = Math.random(); // Fallback
+                }
+                
+                // Escolher vencedor com aleatoriedade criptograficamente segura
+                const winnerIndex = Math.floor(randomValue * this.filteredParticipants.length);
                 const winner = this.filteredParticipants[winnerIndex];
                 
-                // Posição do vencedor na reel (deve estar próximo do centro)
-                const winnerPosition = 25; // Item no meio da reel
+                console.log('🎯 Vencedor selecionado:', winner.nome, 'Índice:', winnerIndex, 'de', this.filteredParticipants.length);
                 
-                // Criar itens da reel
-                const caseItems = this.createCaseItems(this.filteredParticipants, winnerPosition);
+                // EXPANDIR FOCO NO CARROSSEL
+                this.expandCarouselFocus();
+                
+                // Posição do vencedor na reel (randomizar um pouco para variar)
+                const winnerPosition = 35 + Math.floor(Math.random() * 10); // Entre 35-44 (meio-fim)
+                
+                // Criar itens da reel com vencedor correto
+                const caseItems = this.createCaseItems(this.filteredParticipants, winner, winnerPosition);
                 
                 // Limpar e adicionar itens à reel
                 this.caseReelEl.innerHTML = '';
@@ -736,8 +866,7 @@
                 
                 // Começar da esquerda e fazer múltiplas voltas
                 const startPosition = containerWidth;
-                const extraDistance = itemWidth * caseItems.length * 3; // 3 voltas completas
-                const totalDistance = startPosition + extraDistance - finalPosition;
+                const extraDistance = itemWidth * caseItems.length * 4; // 4 voltas completas para mais suspense
                 
                 // Definir posição inicial
                 this.caseReelEl.style.transform = `translateX(${startPosition}px)`;
@@ -746,43 +875,116 @@
                 // Iniciar sons de tick durante a animação
                 this.startTickSounds();
                 
-                // Pequeno delay para garantir que a posição inicial seja aplicada
+                // TEMPO AUMENTADO PARA MAIS SUSPENSE - 7 segundos total
                 setTimeout(() => {
-                    // Aplicar animação com easing realista
-                    this.caseReelEl.style.transition = 'transform 4s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+                    // Aplicar animação com easing mais dramático
+                    this.caseReelEl.style.transition = 'transform 7s cubic-bezier(0.23, 1, 0.320, 1)';
                     this.caseReelEl.style.transform = `translateX(${finalPosition}px)`;
                     
                     // Quando a animação terminar, mostrar o vencedor
                     setTimeout(() => {
                         this.stopTickSounds();
                         this.showWinner(winner);
-                    }, 4100); // Ligeiramente após a animação terminar
-                }, 100);
+                    }, 7100); // Ligeiramente após a animação terminar
+                }, 200);
+            }
+            
+            expandCarouselFocus() {
+                // Expandir container do carrossel e diminuir outros elementos
+                const container = document.querySelector('.sorteio-section');
+                const header = document.querySelector('.header');
+                const filters = document.querySelector('.filters');
+                const participantCount = this.participantCountEl;
+                const controls = document.querySelector('.controls');
+                const caseContainer = document.querySelector('.case-container');
+                
+                // Aplicar transformações com transições suaves
+                header.style.transition = 'all 0.8s ease';
+                filters.style.transition = 'all 0.8s ease'; 
+                participantCount.style.transition = 'all 0.8s ease';
+                controls.style.transition = 'all 0.8s ease';
+                caseContainer.style.transition = 'all 0.8s ease';
+                
+                // Reduzir tamanhos para focar no carrossel
+                header.style.transform = 'scale(0.7)';
+                header.style.opacity = '0.6';
+                filters.style.transform = 'scale(0.8)';
+                filters.style.opacity = '0.7';
+                participantCount.style.transform = 'scale(0.9)';
+                participantCount.style.opacity = '0.8';
+                controls.style.transform = 'scale(0.9)';
+                controls.style.opacity = '0.8';
+                
+                // EXPANDIR O CARROSSEL
+                caseContainer.style.height = '280px'; // Aumentar altura
+                caseContainer.style.transform = 'scale(1.15)'; // Aumentar escala
+                caseContainer.style.boxShadow = '0 0 50px rgba(0, 212, 255, 0.6)';
+                caseContainer.style.border = '4px solid #00d4ff';
+            }
+            
+            resetCarouselFocus() {
+                // Restaurar tamanhos originais
+                const header = document.querySelector('.header');
+                const filters = document.querySelector('.filters');
+                const participantCount = this.participantCountEl;
+                const controls = document.querySelector('.controls');
+                const caseContainer = document.querySelector('.case-container');
+                
+                if (header) {
+                    header.style.transform = 'scale(1)';
+                    header.style.opacity = '1';
+                }
+                if (filters) {
+                    filters.style.transform = 'scale(1)';
+                    filters.style.opacity = '1';
+                }
+                if (participantCount) {
+                    participantCount.style.transform = 'scale(1)';
+                    participantCount.style.opacity = '1';
+                }
+                if (controls) {
+                    controls.style.transform = 'scale(1)';
+                    controls.style.opacity = '1';
+                }
+                if (caseContainer) {
+                    caseContainer.style.height = '200px';
+                    caseContainer.style.transform = 'scale(1)';
+                    caseContainer.style.boxShadow = 'none';
+                    caseContainer.style.border = '3px solid #00d4ff';
+                }
             }
             
             startTickSounds() {
                 this.tickInterval = setInterval(() => {
                     // Frequência variável para criar sensação de velocidade
-                    const randomFreq = 600 + Math.random() * 400;
-                    this.playTickSound(randomFreq, 0.03);
-                }, 80); // Som a cada 80ms inicialmente
+                    const randomFreq = 700 + Math.random() * 500;
+                    this.playTickSound(randomFreq, 0.02);
+                }, 60); // Som mais rápido inicialmente
                 
-                // Desacelerar os ticks conforme a animação progride
+                // Fase 2 - Desacelerar gradualmente (7 segundos total)
+                setTimeout(() => {
+                    clearInterval(this.tickInterval);
+                    this.tickInterval = setInterval(() => {
+                        const randomFreq = 600 + Math.random() * 400;
+                        this.playTickSound(randomFreq, 0.03);
+                    }, 90);
+                }, 2000); // 2s
+                
                 setTimeout(() => {
                     clearInterval(this.tickInterval);
                     this.tickInterval = setInterval(() => {
                         const randomFreq = 500 + Math.random() * 300;
                         this.playTickSound(randomFreq, 0.04);
-                    }, 120);
-                }, 1500);
+                    }, 140);
+                }, 4000); // 4s
                 
                 setTimeout(() => {
                     clearInterval(this.tickInterval);
                     this.tickInterval = setInterval(() => {
                         const randomFreq = 400 + Math.random() * 200;
-                        this.playTickSound(randomFreq, 0.05);
-                    }, 200);
-                }, 3000);
+                        this.playTickSound(randomFreq, 0.06);
+                    }, 220);
+                }, 6000); // 6s - Fase final bem devagar
             }
             
             stopTickSounds() {
@@ -793,39 +995,68 @@
             }
             
             showWinner(winner) {
-                // Som de vitória
+                // Som de vitória ÉPICO
                 this.playWinSound();
                 
-                // Destacar o item vencedor
+                // DESTAQUE SUPER DRAMÁTICO DO ITEM VENCEDOR
                 const winnerItem = this.caseReelEl.querySelector('.case-item.winner');
                 if (winnerItem) {
-                    winnerItem.style.borderColor = '#00d4ff';
-                    winnerItem.style.boxShadow = '0 0 40px rgba(0, 212, 255, 0.8)';
-                    winnerItem.style.transform = 'scale(1.1)';
+                    // Animação de destaque progressiva
+                    winnerItem.style.transition = 'all 0.5s ease';
+                    winnerItem.style.borderColor = '#ffd700';
+                    winnerItem.style.backgroundColor = 'rgba(255, 215, 0, 0.2)';
+                    winnerItem.style.boxShadow = '0 0 80px rgba(255, 215, 0, 1)';
+                    winnerItem.style.transform = 'scale(1.3)';
+                    winnerItem.style.zIndex = '1000';
+                    
+                    // Efeito de pulso dourado
+                    setTimeout(() => {
+                        winnerItem.style.animation = 'winnerPulse 1s infinite';
+                    }, 500);
                 }
                 
-                // Mostrar anúncio do vencedor
+                // MOSTRAR CONFETTI IMEDIATAMENTE
+                this.showMegaConfetti();
+                
+                // ANÚNCIO DRAMÁTICO DO VENCEDOR
                 setTimeout(() => {
-                    this.finalWinnerNameEl.textContent = winner.nome;
-                    this.winnerAnnouncementEl.classList.add('show');
+                    // Resetar foco do carrossel
+                    this.resetCarouselFocus();
                     
-                    // Show confetti
-                    this.showConfetti();
+                    // Garantir que mostra o nome correto
+                    this.finalWinnerNameEl.textContent = winner.nome;
+                    console.log('🏆 Vencedor confirmado no anúncio:', winner.nome);
+                    
+                    // EXPLOSÃO DE REVELAÇÃO
+                    this.winnerAnnouncementEl.classList.add('show');
+                    this.winnerAnnouncementEl.style.animation = 'winnerExplosion 0.8s ease-out';
+                    
+                    // Shake da tela para impacto
+                    document.body.style.animation = 'screenShake 0.6s ease-in-out';
                     
                     // Update buttons
-                    this.drawBtn.innerHTML = '🎉 Parabéns!';
+                    this.drawBtn.innerHTML = '🏆 VENCEDOR!';
+                    this.drawBtn.style.background = 'linear-gradient(45deg, #ffd700, #ffed4a)';
+                    this.drawBtn.style.color = '#000';
                     this.resetBtn.style.display = 'inline-block';
                     
                     this.isDrawing = false;
                     
-                    // Log winner for reference
-                    console.log('Vencedor:', winner);
-                }, 1000);
+                    // Log detalhado do vencedor
+                    console.log('🎉 VENCEDOR FINAL:', {
+                        nome: winner.nome,
+                        email: winner.email,
+                        dados: winner
+                    });
+                }, 1500); // Delay maior para construir suspense
             }
             
             resetDraw() {
                 // Parar todos os sons
                 this.stopTickSounds();
+                
+                // Resetar foco do carrossel
+                this.resetCarouselFocus();
                 
                 // Reset reel
                 this.caseReelEl.innerHTML = '<div class="placeholder-text">Clique em "Sortear" para começar!</div>';
@@ -834,40 +1065,146 @@
                 
                 // Hide winner announcement
                 this.winnerAnnouncementEl.classList.remove('show');
+                this.winnerAnnouncementEl.style.animation = 'none';
                 
-                // Reset buttons
+                // Reset body animations
+                document.body.style.animation = 'none';
+                
+                // Reset buttons to original state
                 this.drawBtn.disabled = false;
                 this.drawBtn.innerHTML = '🎯 Sortear Participante';
+                this.drawBtn.style.background = 'linear-gradient(45deg, #00d4ff, #0099cc)';
+                this.drawBtn.style.color = 'white';
                 this.resetBtn.style.display = 'none';
                 
                 this.isDrawing = false;
+                
+                console.log('🔄 Sorteio resetado - pronto para nova rodada');
             }
             
-            showConfetti() {
-                const colors = ['#00d4ff', '#ffffff', '#0099cc', '#66e0ff'];
+            showMegaConfetti() {
+                const colors = ['#ffd700', '#ffed4a', '#00d4ff', '#ffffff', '#ff6b35', '#ff8a00'];
                 
-                for (let i = 0; i < 50; i++) {
+                // EXPLOSÃO MASSIVA DE CONFETTI
+                for (let i = 0; i < 200; i++) {
                     setTimeout(() => {
                         const confetti = document.createElement('div');
                         confetti.className = 'confetti';
                         confetti.style.left = Math.random() * window.innerWidth + 'px';
                         confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-                        confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
-                        confetti.style.animationName = 'fall';
+                        confetti.style.width = (5 + Math.random() * 15) + 'px';
+                        confetti.style.height = confetti.style.width;
+                        confetti.style.animationDuration = Math.random() * 4 + 3 + 's';
+                        confetti.style.animationName = 'megaFall';
+                        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
                         
                         document.body.appendChild(confetti);
                         
                         setTimeout(() => {
                             confetti.remove();
-                        }, 5000);
-                    }, i * 50);
+                        }, 8000);
+                    }, i * 20);
                 }
+                
+                // FOGOS DE ARTIFÍCIO LATERAIS
+                this.createFireworks();
+            }
+            
+            createFireworks() {
+                for (let i = 0; i < 10; i++) {
+                    setTimeout(() => {
+                        const firework = document.createElement('div');
+                        firework.style.position = 'fixed';
+                        firework.style.left = (Math.random() * window.innerWidth) + 'px';
+                        firework.style.top = (Math.random() * window.innerHeight * 0.6) + 'px';
+                        firework.style.width = '4px';
+                        firework.style.height = '4px';
+                        firework.style.background = '#ffd700';
+                        firework.style.borderRadius = '50%';
+                        firework.style.boxShadow = '0 0 20px #ffd700';
+                        firework.style.animation = 'firework 1s ease-out';
+                        firework.style.zIndex = '2000';
+                        
+                        document.body.appendChild(firework);
+                        
+                        setTimeout(() => {
+                            firework.remove();
+                        }, 1000);
+                    }, i * 100);
+                }
+            }
+            
+            showConfetti() {
+                // Versão normal para reset
+                this.showMegaConfetti();
             }
         }
         
-        // Add CSS for confetti animation
+        // Add CSS for all new animations
         const style = document.createElement('style');
         style.textContent = `
+            @keyframes megaFall {
+                from {
+                    transform: translateY(-100vh) rotate(0deg) scale(0);
+                    opacity: 1;
+                }
+                50% {
+                    transform: translateY(50vh) rotate(360deg) scale(1.2);
+                    opacity: 1;
+                }
+                to {
+                    transform: translateY(120vh) rotate(720deg) scale(0.8);
+                    opacity: 0;
+                }
+            }
+            
+            @keyframes winnerPulse {
+                0%, 100% { 
+                    transform: scale(1.3);
+                    box-shadow: 0 0 80px rgba(255, 215, 0, 1);
+                }
+                50% { 
+                    transform: scale(1.4);
+                    box-shadow: 0 0 120px rgba(255, 215, 0, 1);
+                }
+            }
+            
+            @keyframes winnerExplosion {
+                0% {
+                    transform: scale(0) rotate(-180deg);
+                    opacity: 0;
+                }
+                50% {
+                    transform: scale(1.2) rotate(0deg);
+                    opacity: 1;
+                }
+                100% {
+                    transform: scale(1) rotate(0deg);
+                    opacity: 1;
+                }
+            }
+            
+            @keyframes screenShake {
+                0%, 100% { transform: translateX(0); }
+                10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+                20%, 40%, 60%, 80% { transform: translateX(5px); }
+            }
+            
+            @keyframes firework {
+                0% {
+                    transform: scale(0);
+                    opacity: 1;
+                }
+                50% {
+                    transform: scale(3);
+                    opacity: 0.8;
+                }
+                100% {
+                    transform: scale(6);
+                    opacity: 0;
+                }
+            }
+            
             @keyframes fall {
                 from {
                     transform: translateY(-100vh) rotate(0deg);

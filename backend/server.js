@@ -98,6 +98,10 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/admin.html'));
 });
 
+app.get('/admin/sorteio', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/sorteio.html'));
+});
+
 app.get('/sorteio', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/sorteio.html'));
 });
