@@ -603,11 +603,24 @@
                     const response = await fetch('/api/leads');
                     if (!response.ok) throw new Error('Erro ao carregar participantes');
                     
-                    this.participants = await response.json();
+                    const data = await response.json();
+                    
+                    // A API retorna um objeto com 'leads' ou pode retornar array diretamente
+                    if (data.success && data.leads) {
+                        this.participants = data.leads;
+                    } else if (Array.isArray(data)) {
+                        this.participants = data;
+                    } else if (data.data && Array.isArray(data.data)) {
+                        this.participants = data.data;
+                    } else {
+                        this.participants = [];
+                    }
+                    
                     this.updateFilteredParticipants();
                     this.updateParticipantCount();
                 } catch (error) {
                     console.error('Erro:', error);
+                    this.participants = [];
                     this.participantCountEl.innerHTML = '❌ Erro ao carregar participantes';
                 }
             }
