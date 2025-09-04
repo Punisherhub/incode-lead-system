@@ -40,11 +40,23 @@
             position: absolute;
             width: 60px;
             height: 60px;
-            opacity: 0.12;
+            opacity: 0.15;
             will-change: transform, opacity;
             backface-visibility: hidden;
             transform-style: preserve-3d;
             animation: floatDown linear infinite;
+        }
+        
+        .floating-logo.small {
+            width: 45px;
+            height: 45px;
+            opacity: 0.1;
+        }
+        
+        .floating-logo.large {
+            width: 75px;
+            height: 75px;
+            opacity: 0.18;
         }
         
         @keyframes floatDown {
@@ -1200,7 +1212,7 @@
             // SISTEMA DE LOGOS FLUTUANTES - OTIMIZADO
             initFloatingLogos() {
                 this.logoPool = [];
-                this.maxLogos = 4; // Máximo de logos simultâneas
+                this.maxLogos = 8; // Mais logos simultâneas para cobrir laterais
                 this.logoInterval = null;
                 this.isPageVisible = true;
                 
@@ -1229,12 +1241,14 @@
             startLogoAnimation() {
                 if (this.logoInterval) return;
                 
-                // Primeira logo imediata
-                this.createFloatingLogo();
+                // Criar logos iniciais para preencher as laterais
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => this.createFloatingLogo(), i * 800);
+                }
                 
-                // Intervalo otimizado baseado na performance
+                // Intervalo mais frequente para cobrir as laterais
                 const isMobile = window.innerWidth < 768;
-                const interval = isMobile ? 4000 : 3000;
+                const interval = isMobile ? 2500 : 2000; // Mais frequente
                 
                 this.logoInterval = setInterval(() => {
                     if (this.isPageVisible && this.logoPool.length < this.maxLogos) {
@@ -1259,11 +1273,41 @@
                 
                 // Usar imagem pré-carregada
                 logo.src = this.logoImage.src;
-                logo.className = 'floating-logo';
                 
-                // Posição otimizada
-                const maxX = window.innerWidth - 60;
-                logo.style.left = Math.random() * maxX + 'px';
+                // Variação de tamanho para mais dinamismo
+                const sizeRandom = Math.random();
+                let logoClass = 'floating-logo';
+                let logoWidth = 60;
+                
+                if (sizeRandom < 0.2) {
+                    logoClass += ' small';
+                    logoWidth = 45;
+                } else if (sizeRandom > 0.8) {
+                    logoClass += ' large';
+                    logoWidth = 75;
+                }
+                
+                logo.className = logoClass;
+                
+                // Posição focada nas laterais (70% laterais, 30% centro)
+                const screenWidth = window.innerWidth;
+                let xPosition;
+                
+                if (Math.random() < 0.7) {
+                    // 70% chance de aparecer nas laterais
+                    if (Math.random() < 0.5) {
+                        // Lateral esquerda (0 a 25% da tela)
+                        xPosition = Math.random() * (screenWidth * 0.25);
+                    } else {
+                        // Lateral direita (75% a 100% da tela)
+                        xPosition = (screenWidth * 0.75) + Math.random() * (screenWidth * 0.25 - logoWidth);
+                    }
+                } else {
+                    // 30% chance no centro para não ficar vazio demais
+                    xPosition = (screenWidth * 0.25) + Math.random() * (screenWidth * 0.5 - logoWidth);
+                }
+                
+                logo.style.left = Math.max(0, Math.min(xPosition, screenWidth - logoWidth)) + 'px';
                 
                 // Duração otimizada para performance
                 const duration = 10 + Math.random() * 3; // 10-13 segundos
