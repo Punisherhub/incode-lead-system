@@ -490,7 +490,7 @@
         <a href="/admin" class="back-link">← Voltar ao Admin</a>
         
         <div class="header">
-            <img src="assets/images/logo-incode.png" alt="Incode Academy" class="logo">
+            <img src="/assets/images/logo-incode.png" alt="Incode Academy" class="logo">
             <h1>🎉 Sorteio Incode Academy</h1>
             <p class="subtitle">Sistema de sorteio para eventos ao vivo</p>
         </div>
@@ -1091,11 +1091,13 @@
                 // MOSTRAR CONFETTI IMEDIATAMENTE
                 this.showMegaConfetti();
                 
+                // RESETAR FOCO IMEDIATAMENTE APÓS CONFETTI
+                setTimeout(() => {
+                    this.resetCarouselFocus();
+                }, 500);
+                
                 // ANÚNCIO DRAMÁTICO DO VENCEDOR
                 setTimeout(() => {
-                    // Resetar foco do carrossel
-                    this.resetCarouselFocus();
-                    
                     // Garantir que mostra o nome correto
                     this.finalWinnerNameEl.textContent = winner.nome;
                     console.log('🏆 Vencedor confirmado no anúncio:', winner.nome);
@@ -1187,7 +1189,7 @@
             createFloatingLogo() {
                 const floatingLogosContainer = document.getElementById('floatingLogos');
                 const logo = document.createElement('img');
-                logo.src = 'assets/images/logo-incode.png';
+                logo.src = '/assets/images/logo-incode.png';
                 logo.className = 'floating-logo';
                 logo.style.left = Math.random() * (window.innerWidth - 80) + 'px';
                 logo.style.animationDuration = (8 + Math.random() * 4) + 's'; // 8-12 segundos
