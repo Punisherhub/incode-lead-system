@@ -300,9 +300,9 @@ class SiteModeManager {
                     </div>
                 </div>
                 <h3>Inscrição realizada com sucesso! 🎓</h3>
-                <p><strong>Obrigado pelo seu interesse no workshop!</strong></p>
+                <p><strong>A Incode Academy agradece seu interesse no workshop!</strong></p>
                 <p>Sua inscrição foi registrada. Temos apenas <strong>16 vagas para cada dia</strong> (17 e 18 de setembro), por isso nossa equipe analisará as inscrições e entrará em contato apenas com os selecionados.</p>
-                <p style="color: #00d4ff; font-weight: 500; margin-top: 15px;">📧 Fique atento ao seu e-mail nos próximos dias!</p>
+                <p style="color: #00d4ff; font-weight: 500; margin-top: 15px;">📱📧 Fique atento ao seu WhatsApp e seu e-mail nos próximos dias!</p>
                 <button id="close-modal" class="modal-btn">Continuar</button>
             `;
             
