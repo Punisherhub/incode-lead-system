@@ -135,6 +135,108 @@ router.get('/stats', async (req, res) => {
     }
 });
 
+// GET /api/leads/sorteio - Buscar leads filtrados para sorteio
+router.get('/sorteio', async (req, res) => {
+    try {
+        const { periodo = 'hoje', tipo = 'todos' } = req.query;
+        
+        console.log(`🎰 Solicitação de leads para sorteio - Período: ${periodo}, Tipo: ${tipo}`);
+        
+        const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
+        let whereConditions = [];
+        let params = [];
+        let paramIndex = 1;
+        
+        // Filtros de período
+        switch (periodo) {
+            case 'hoje':
+                if (isProduction) {
+                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE`);
+                } else {
+                    whereConditions.push(`DATE(data_criacao) = DATE('now')`);
+                }
+                break;
+            case 'ontem':
+                if (isProduction) {
+                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE - INTERVAL '1 day'`);
+                } else {
+                    whereConditions.push(`DATE(data_criacao) = DATE('now', '-1 day')`);
+                }
+                break;
+            case 'semana':
+                if (isProduction) {
+                    whereConditions.push(`data_criacao >= CURRENT_DATE - INTERVAL '7 days'`);
+                } else {
+                    whereConditions.push(`data_criacao >= datetime('now', '-7 days')`);
+                }
+                break;
+            case 'mes':
+                if (isProduction) {
+                    whereConditions.push(`EXTRACT(YEAR FROM data_criacao AT TIME ZONE 'America/Sao_Paulo') = EXTRACT(YEAR FROM CURRENT_DATE)`);
+                    whereConditions.push(`EXTRACT(MONTH FROM data_criacao AT TIME ZONE 'America/Sao_Paulo') = EXTRACT(MONTH FROM CURRENT_DATE)`);
+                } else {
+                    whereConditions.push(`strftime('%Y-%m', data_criacao) = strftime('%Y-%m', 'now')`);
+                }
+                break;
+            case 'todos':
+                // Sem filtro de data
+                break;
+        }
+        
+        // Filtros de tipo
+        if (tipo !== 'todos') {
+            if (isProduction) {
+                whereConditions.push(`tipo_lead = $${paramIndex++}`);
+            } else {
+                whereConditions.push(`tipo_lead = ?`);
+            }
+            params.push(tipo);
+        }
+        
+        // Construir query
+        let selectQuery = `
+            SELECT id, nome, email, telefone, idade, curso, tipo_lead, evento, dia_evento, data_criacao
+            FROM leads
+        `;
+        
+        if (whereConditions.length > 0) {
+            selectQuery += ` WHERE ${whereConditions.join(' AND ')}`;
+        }
+        
+        selectQuery += ` ORDER BY data_criacao DESC`;
+        
+        // Executar query
+        let leads;
+        if (isProduction) {
+            const { query } = require('../database/postgres');
+            const result = await query(selectQuery, params);
+            leads = result.rows || result;
+        } else {
+            const { allQuery } = require('../database/init');
+            leads = await allQuery(selectQuery, params);
+        }
+        
+        console.log(`✅ Encontrados ${leads.length} leads para sorteio`);
+        
+        res.json({
+            success: true,
+            data: leads,
+            filtros: { periodo, tipo },
+            total: leads.length,
+            timestamp: new Date().toISOString()
+        });
+        
+    } catch (error) {
+        console.error('❌ Erro ao buscar leads para sorteio:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Erro interno do servidor',
+            code: 'SORTEIO_LEADS_ERROR',
+            message: error.message
+        });
+    }
+});
+
 // GET /api/leads/:id - Buscar lead por ID
 router.get('/:id', async (req, res) => {
     try {
@@ -413,5 +515,6 @@ router.delete('/:id', async (req, res) => {
         });
     }
 });
+
 
 module.exports = router;

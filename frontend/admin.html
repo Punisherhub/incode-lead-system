@@ -617,6 +617,332 @@
             border: 1px solid rgba(0, 255, 136, 0.3);
             display: none;
         }
+        
+        /* ========== SISTEMA DE SORTEIO ========== */
+        .sorteio-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sorteio-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(0, 212, 255, 0.05) 50%, 
+                transparent 70%);
+            animation: sorteioGlow 8s infinite linear;
+            pointer-events: none;
+        }
+        
+        @keyframes sorteioGlow {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sorteio-title {
+            color: #00d4ff;
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .sorteio-controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .filter-group {
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .filter-title {
+            color: #00d4ff;
+            font-size: 1rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .filter-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            background: rgba(0, 212, 255, 0.1);
+            color: #00d4ff;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .filter-btn:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.3);
+        }
+        
+        .filter-btn.active {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: #000;
+            border-color: #00d4ff;
+        }
+        
+        .sorteio-display {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid rgba(0, 212, 255, 0.3);
+            overflow: hidden;
+        }
+        
+        .sorteio-display::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .sorteio-display.scanning::before {
+            animation: scanEffect 2s infinite;
+        }
+        
+        @keyframes scanEffect {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        .leads-counter {
+            color: #00d4ff;
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+        
+        .sorteio-wheel {
+            width: 280px;
+            height: 280px;
+            border: 3px solid #00d4ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin: 20px auto;
+            background: radial-gradient(circle, rgba(0, 212, 255, 0.1), transparent);
+        }
+        
+        .nome-display {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.2;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .sorteio-wheel.spinning {
+            animation: spin 0.1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .sorteio-wheel.winner {
+            animation: winner 2s ease-in-out;
+            border-color: #ffd700;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.8);
+        }
+        
+        @keyframes winner {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+        
+        .sorteio-actions {
+            display: flex;
+            gap: 20px;
+            margin-top: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .sorteio-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            min-width: 150px;
+        }
+        
+        .btn-sortear {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: #000;
+        }
+        
+        .btn-sortear:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
+        }
+        
+        .btn-sortear:disabled {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.5);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .btn-parar {
+            background: linear-gradient(45deg, #ff6b6b, #ff5252);
+            color: white;
+        }
+        
+        .btn-parar:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+        }
+        
+        .btn-resetar {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-resetar:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+        
+        .winner-announcement {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+        
+        .winner-announcement.show {
+            display: flex;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .winner-text {
+            font-size: 3rem;
+            color: #ffd700;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            animation: pulse 2s infinite;
+        }
+        
+        .winner-name {
+            font-size: 4rem;
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.8);
+            margin-bottom: 30px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .leads-list-preview {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .lead-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .lead-name {
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .lead-info {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.8rem;
+        }
     </style>
 </head>
 <body>
@@ -737,6 +1063,82 @@
             
             <div class="success-message" id="successMessage">
                 ✅ Configurações salvas com sucesso! O site foi atualizado.
+            </div>
+        </div>
+        
+        <!-- Seção de Sorteio -->
+        <div class="sorteio-section">
+            <h2 class="sorteio-title">
+                🎰 Sistema de Sorteio em Tempo Real
+            </h2>
+            
+            <div class="sorteio-controls">
+                <!-- Filtros de Período -->
+                <div class="filter-group">
+                    <div class="filter-title">
+                        📅 Período dos Leads
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-filter="hoje">Hoje</button>
+                        <button class="filter-btn" data-filter="ontem">Ontem</button>
+                        <button class="filter-btn" data-filter="semana">Esta Semana</button>
+                        <button class="filter-btn" data-filter="mes">Este Mês</button>
+                        <button class="filter-btn" data-filter="todos">Todos</button>
+                    </div>
+                </div>
+                
+                <!-- Filtros de Tipo -->
+                <div class="filter-group">
+                    <div class="filter-title">
+                        🎯 Tipo de Lead
+                    </div>
+                    <div class="filter-buttons">
+                        <button class="filter-btn active" data-tipo="todos">Todos</button>
+                        <button class="filter-btn" data-tipo="geral">Captação Geral</button>
+                        <button class="filter-btn" data-tipo="workshop">Workshop/Evento</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Display do Sorteio -->
+            <div class="sorteio-display" id="sorteioDisplay">
+                <div class="leads-counter" id="leadsCounter">
+                    Selecione um filtro para carregar os leads
+                </div>
+                
+                <div class="sorteio-wheel" id="sorteioWheel">
+                    <div class="nome-display" id="nomeDisplay">
+                        Pronto para sortear!
+                    </div>
+                </div>
+                
+                <!-- Lista de Participantes (Preview) -->
+                <div class="leads-list-preview" id="leadsPreview" style="display: none;">
+                    <h4 style="color: #00d4ff; margin-bottom: 10px;">Participantes do Sorteio:</h4>
+                    <div id="participantesList"></div>
+                </div>
+                
+                <!-- Controles do Sorteio -->
+                <div class="sorteio-actions">
+                    <button class="sorteio-btn btn-sortear" id="btnSortear" disabled>
+                        🎯 Iniciar Sorteio
+                    </button>
+                    <button class="sorteio-btn btn-parar" id="btnParar" style="display: none;">
+                        ⏹️ Parar Sorteio
+                    </button>
+                    <button class="sorteio-btn btn-resetar" id="btnResetar">
+                        🔄 Resetar
+                    </button>
+                </div>
+                
+                <!-- Anúncio do Vencedor -->
+                <div class="winner-announcement" id="winnerAnnouncement">
+                    <div class="winner-text">🏆 VENCEDOR!</div>
+                    <div class="winner-name" id="winnerName"></div>
+                    <button class="sorteio-btn btn-resetar" onclick="resetarSorteio()">
+                        ✨ Novo Sorteio
+                    </button>
+                </div>
             </div>
         </div>
         
@@ -1260,10 +1662,252 @@
             saveConfigBtn.addEventListener('click', saveSiteConfig);
         }
         
+        // ========== SISTEMA DE SORTEIO ==========
+        
+        let sorteioLeads = [];
+        let sorteioAtivo = false;
+        let intervaloSorteio = null;
+        let filtroAtual = { periodo: 'hoje', tipo: 'todos' };
+        
+        // Carregar leads filtrados para sorteio
+        async function carregarLeadsSorteio() {
+            try {
+                const params = new URLSearchParams({
+                    periodo: filtroAtual.periodo,
+                    tipo: filtroAtual.tipo
+                });
+                
+                const response = await fetch(`${API_BASE}/leads/sorteio?${params}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    sorteioLeads = data.data;
+                    atualizarDisplaySorteio();
+                } else {
+                    console.error('Erro ao carregar leads:', data.error);
+                    document.getElementById('leadsCounter').textContent = 'Erro ao carregar leads';
+                }
+                
+            } catch (error) {
+                console.error('Erro ao carregar leads para sorteio:', error);
+                document.getElementById('leadsCounter').textContent = 'Erro na conexão';
+            }
+        }
+        
+        // Atualizar display do sorteio
+        function atualizarDisplaySorteio() {
+            const counter = document.getElementById('leadsCounter');
+            const btnSortear = document.getElementById('btnSortear');
+            const leadsPreview = document.getElementById('leadsPreview');
+            const participantesList = document.getElementById('participantesList');
+            
+            if (sorteioLeads.length === 0) {
+                counter.textContent = 'Nenhum lead encontrado para os filtros selecionados';
+                btnSortear.disabled = true;
+                leadsPreview.style.display = 'none';
+            } else {
+                counter.textContent = `${sorteioLeads.length} leads carregados para sorteio`;
+                btnSortear.disabled = false;
+                
+                // Mostrar preview dos participantes
+                leadsPreview.style.display = 'block';
+                participantesList.innerHTML = sorteioLeads.map(lead => `
+                    <div class="lead-item">
+                        <span class="lead-name">${lead.nome}</span>
+                        <span class="lead-info">${lead.email} • ${formatDate(lead.data_criacao)}</span>
+                    </div>
+                `).join('');
+            }
+        }
+        
+        // Iniciar sorteio com animação
+        function iniciarSorteio() {
+            if (sorteioLeads.length === 0) return;
+            
+            sorteioAtivo = true;
+            const btnSortear = document.getElementById('btnSortear');
+            const btnParar = document.getElementById('btnParar');
+            const sorteioWheel = document.getElementById('sorteioWheel');
+            const nomeDisplay = document.getElementById('nomeDisplay');
+            const sorteioDisplay = document.getElementById('sorteioDisplay');
+            
+            // Atualizar botões
+            btnSortear.style.display = 'none';
+            btnParar.style.display = 'inline-block';
+            
+            // Adicionar classes de animação
+            sorteioWheel.classList.add('spinning');
+            sorteioDisplay.classList.add('scanning');
+            
+            // Efeito de sorteio - nomes passando rapidamente
+            let velocidade = 50; // milliseconds
+            let contador = 0;
+            
+            intervaloSorteio = setInterval(() => {
+                const leadAleatorio = sorteioLeads[Math.floor(Math.random() * sorteioLeads.length)];
+                nomeDisplay.textContent = leadAleatorio.nome;
+                
+                contador++;
+                
+                // Diminuir velocidade gradualmente para criar suspense
+                if (contador > 20) {
+                    velocidade += 10;
+                    clearInterval(intervaloSorteio);
+                    
+                    intervaloSorteio = setInterval(() => {
+                        const leadAleatorio = sorteioLeads[Math.floor(Math.random() * sorteioLeads.length)];
+                        nomeDisplay.textContent = leadAleatorio.nome;
+                        contador++;
+                        
+                        if (contador > 40) {
+                            velocidade += 20;
+                            clearInterval(intervaloSorteio);
+                            
+                            // Fase final - muito lento
+                            intervaloSorteio = setInterval(() => {
+                                const leadAleatorio = sorteioLeads[Math.floor(Math.random() * sorteioLeads.length)];
+                                nomeDisplay.textContent = leadAleatorio.nome;
+                                contador++;
+                                
+                                if (contador > 50) {
+                                    pararSorteio();
+                                }
+                            }, velocidade + 50);
+                        }
+                    }, velocidade);
+                }
+            }, velocidade);
+        }
+        
+        // Parar sorteio e mostrar vencedor
+        function pararSorteio() {
+            if (!sorteioAtivo) return;
+            
+            clearInterval(intervaloSorteio);
+            sorteioAtivo = false;
+            
+            const btnSortear = document.getElementById('btnSortear');
+            const btnParar = document.getElementById('btnParar');
+            const sorteioWheel = document.getElementById('sorteioWheel');
+            const nomeDisplay = document.getElementById('nomeDisplay');
+            const sorteioDisplay = document.getElementById('sorteioDisplay');
+            const winnerAnnouncement = document.getElementById('winnerAnnouncement');
+            const winnerName = document.getElementById('winnerName');
+            
+            // Selecionar vencedor final
+            const vencedor = sorteioLeads[Math.floor(Math.random() * sorteioLeads.length)];
+            nomeDisplay.textContent = vencedor.nome;
+            
+            // Parar animações
+            sorteioWheel.classList.remove('spinning');
+            sorteioDisplay.classList.remove('scanning');
+            sorteioWheel.classList.add('winner');
+            
+            // Mostrar anúncio do vencedor
+            setTimeout(() => {
+                winnerName.textContent = vencedor.nome;
+                winnerAnnouncement.classList.add('show');
+                
+                // Efeitos sonoros simulados com vibração visual
+                document.body.style.animation = 'shake 0.5s ease-in-out 3';
+                
+                setTimeout(() => {
+                    document.body.style.animation = '';
+                }, 1500);
+                
+            }, 1000);
+            
+            // Restaurar botões
+            btnSortear.style.display = 'inline-block';
+            btnParar.style.display = 'none';
+            
+            console.log('🏆 VENCEDOR DO SORTEIO:', vencedor);
+        }
+        
+        // Resetar sorteio
+        function resetarSorteio() {
+            clearInterval(intervaloSorteio);
+            sorteioAtivo = false;
+            
+            const btnSortear = document.getElementById('btnSortear');
+            const btnParar = document.getElementById('btnParar');
+            const sorteioWheel = document.getElementById('sorteioWheel');
+            const nomeDisplay = document.getElementById('nomeDisplay');
+            const sorteioDisplay = document.getElementById('sorteioDisplay');
+            const winnerAnnouncement = document.getElementById('winnerAnnouncement');
+            
+            // Resetar elementos
+            nomeDisplay.textContent = 'Pronto para sortear!';
+            sorteioWheel.classList.remove('spinning', 'winner');
+            sorteioDisplay.classList.remove('scanning');
+            winnerAnnouncement.classList.remove('show');
+            
+            // Restaurar botões
+            btnSortear.style.display = 'inline-block';
+            btnParar.style.display = 'none';
+            btnSortear.disabled = sorteioLeads.length === 0;
+        }
+        
+        // Event listeners para filtros
+        function setupSorteioEventListeners() {
+            // Filtros de período
+            document.querySelectorAll('[data-filter]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Atualizar estado ativo
+                    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Atualizar filtro
+                    filtroAtual.periodo = btn.dataset.filter;
+                    carregarLeadsSorteio();
+                });
+            });
+            
+            // Filtros de tipo
+            document.querySelectorAll('[data-tipo]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // Atualizar estado ativo
+                    document.querySelectorAll('[data-tipo]').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    // Atualizar filtro
+                    filtroAtual.tipo = btn.dataset.tipo;
+                    carregarLeadsSorteio();
+                });
+            });
+            
+            // Botões de controle
+            document.getElementById('btnSortear').addEventListener('click', iniciarSorteio);
+            document.getElementById('btnParar').addEventListener('click', pararSorteio);
+            document.getElementById('btnResetar').addEventListener('click', resetarSorteio);
+        }
+        
+        // CSS para shake animation
+        const shakeStyle = document.createElement('style');
+        shakeStyle.textContent = `
+            @keyframes shake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+        `;
+        document.head.appendChild(shakeStyle);
+        
+        // Tornar funções globais
+        window.resetarSorteio = resetarSorteio;
+        
         // Inicialização
         checkAuth();
         resetInactivityTimer();
         setupConfigEventListeners();
+        setupSorteioEventListeners();
+        
+        // Carregar leads inicial após login
+        setTimeout(() => {
+            if (isLoggedIn) {
+                carregarLeadsSorteio();
+            }
+        }, 1000);
     </script>
 </body>
 </html>
