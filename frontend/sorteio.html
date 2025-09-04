@@ -23,7 +23,7 @@
             position: relative;
         }
         
-        /* LOGO FLUTUANTE NO FUNDO */
+        /* LOGO FLUTUANTE NO FUNDO - OTIMIZADA */
         .floating-logos {
             position: fixed;
             top: 0;
@@ -33,30 +33,45 @@
             pointer-events: none;
             z-index: 1;
             overflow: hidden;
+            will-change: transform;
         }
         
         .floating-logo {
             position: absolute;
-            width: 80px;
-            height: 80px;
-            opacity: 0.15;
+            width: 60px;
+            height: 60px;
+            opacity: 0.12;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            transform-style: preserve-3d;
             animation: floatDown linear infinite;
         }
         
         @keyframes floatDown {
             from {
-                transform: translateY(-100px) rotate(0deg);
+                transform: translate3d(0, -100px, 0) rotate(0deg) scale(0.8);
                 opacity: 0;
             }
-            10% {
-                opacity: 0.15;
+            15% {
+                opacity: 0.12;
+                transform: translate3d(0, 15vh, 0) rotate(54deg) scale(1);
             }
-            90% {
-                opacity: 0.15;
+            85% {
+                opacity: 0.12;
+                transform: translate3d(0, 85vh, 0) rotate(306deg) scale(1);
             }
             to {
-                transform: translateY(calc(100vh + 100px)) rotate(360deg);
+                transform: translate3d(0, calc(100vh + 100px), 0) rotate(360deg) scale(0.8);
                 opacity: 0;
+            }
+        }
+        
+        /* REDUZIR LOGOS EM TELAS MENORES */
+        @media (max-width: 768px) {
+            .floating-logo {
+                width: 45px;
+                height: 45px;
+                opacity: 0.08;
             }
         }
         
@@ -894,8 +909,9 @@
                 this.drawBtn.disabled = true;
                 this.drawBtn.innerHTML = '🎲 Sorteando...';
                 
-                // ATIVAR FOCO NO CARROSSEL
+                // ATIVAR FOCO NO CARROSSEL E PAUSAR LOGOS PARA PERFORMANCE
                 this.setCarouselFocus();
+                this.pauseLogoAnimation();
                 
                 // Som de abertura da case
                 this.playCaseOpenSound();
@@ -1091,9 +1107,10 @@
                 // MOSTRAR CONFETTI IMEDIATAMENTE
                 this.showMegaConfetti();
                 
-                // RESETAR FOCO IMEDIATAMENTE APÓS CONFETTI
+                // RESETAR FOCO E REATIVAR LOGOS APÓS CONFETTI
                 setTimeout(() => {
                     this.resetCarouselFocus();
+                    this.startLogoAnimation();
                 }, 500);
                 
                 // ANÚNCIO DRAMÁTICO DO VENCEDOR
@@ -1180,29 +1197,113 @@
                 console.log('🔄 Sorteio resetado - pronto para nova rodada');
             }
             
-            // SISTEMA DE LOGOS FLUTUANTES
+            // SISTEMA DE LOGOS FLUTUANTES - OTIMIZADO
             initFloatingLogos() {
+                this.logoPool = [];
+                this.maxLogos = 4; // Máximo de logos simultâneas
+                this.logoInterval = null;
+                this.isPageVisible = true;
+                
+                // Pré-carregar imagem
+                this.preloadLogo();
+                
+                // Detectar visibilidade da página para pausar animações
+                document.addEventListener('visibilitychange', () => {
+                    this.isPageVisible = !document.hidden;
+                    if (this.isPageVisible) {
+                        this.startLogoAnimation();
+                    } else {
+                        this.pauseLogoAnimation();
+                    }
+                });
+                
+                // Iniciar animação
+                this.startLogoAnimation();
+            }
+            
+            preloadLogo() {
+                this.logoImage = new Image();
+                this.logoImage.src = '/assets/images/logo-incode.png';
+            }
+            
+            startLogoAnimation() {
+                if (this.logoInterval) return;
+                
+                // Primeira logo imediata
                 this.createFloatingLogo();
-                setInterval(() => this.createFloatingLogo(), 3000); // Nova logo a cada 3 segundos
+                
+                // Intervalo otimizado baseado na performance
+                const isMobile = window.innerWidth < 768;
+                const interval = isMobile ? 4000 : 3000;
+                
+                this.logoInterval = setInterval(() => {
+                    if (this.isPageVisible && this.logoPool.length < this.maxLogos) {
+                        this.createFloatingLogo();
+                    }
+                }, interval);
+            }
+            
+            pauseLogoAnimation() {
+                if (this.logoInterval) {
+                    clearInterval(this.logoInterval);
+                    this.logoInterval = null;
+                }
             }
             
             createFloatingLogo() {
+                // Limpar logos antigas do pool
+                this.cleanupLogos();
+                
                 const floatingLogosContainer = document.getElementById('floatingLogos');
                 const logo = document.createElement('img');
-                logo.src = '/assets/images/logo-incode.png';
+                
+                // Usar imagem pré-carregada
+                logo.src = this.logoImage.src;
                 logo.className = 'floating-logo';
-                logo.style.left = Math.random() * (window.innerWidth - 80) + 'px';
-                logo.style.animationDuration = (8 + Math.random() * 4) + 's'; // 8-12 segundos
-                logo.style.animationDelay = Math.random() * 2 + 's'; // Delay aleatório
                 
+                // Posição otimizada
+                const maxX = window.innerWidth - 60;
+                logo.style.left = Math.random() * maxX + 'px';
+                
+                // Duração otimizada para performance
+                const duration = 10 + Math.random() * 3; // 10-13 segundos
+                logo.style.animationDuration = duration + 's';
+                logo.style.animationDelay = Math.random() * 1 + 's';
+                
+                // Adicionar ao DOM e pool
                 floatingLogosContainer.appendChild(logo);
+                this.logoPool.push({
+                    element: logo,
+                    createdAt: Date.now(),
+                    duration: duration * 1000
+                });
                 
-                // Remover logo após animação
+                // Auto-cleanup com margin de segurança
                 setTimeout(() => {
-                    if (logo.parentNode) {
+                    this.removeLogo(logo);
+                }, (duration + 2) * 1000);
+            }
+            
+            cleanupLogos() {
+                const now = Date.now();
+                this.logoPool = this.logoPool.filter(logoData => {
+                    const age = now - logoData.createdAt;
+                    if (age > logoData.duration + 2000) {
+                        this.removeLogo(logoData.element);
+                        return false;
+                    }
+                    return true;
+                });
+            }
+            
+            removeLogo(logo) {
+                try {
+                    if (logo && logo.parentNode) {
                         logo.parentNode.removeChild(logo);
                     }
-                }, 15000);
+                } catch (error) {
+                    // Silently handle removal errors
+                }
             }
             
             // SISTEMA DE FOCO NO CARROSSEL
