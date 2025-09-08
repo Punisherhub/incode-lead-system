@@ -423,7 +423,7 @@ async function sendToN8N(leadId, leadData) {
     }
     
     try {
-        const fetch = require('node-fetch').default || require('node-fetch');
+        // Usar fetch nativo do Node.js 18+ (sem dependência externa)
         
         const payload = {
             lead_id: leadId,
