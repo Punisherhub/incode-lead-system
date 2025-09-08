@@ -7,7 +7,8 @@
     "start": "node backend/server.js",
     "dev": "nodemon backend/server.js",
     "build": "echo 'Frontend build complete'",
-    "deploy": "echo 'Deploying to production...'"
+    "deploy": "echo 'Deploying to production...'",
+    "migrate:postgres": "node backend/database/migrate-postgres.js"
   },
   "keywords": ["leads", "incode", "academy", "python", "3d"],
   "author": "Incode Academy",
