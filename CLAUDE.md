@@ -22,6 +22,18 @@ npm run build       # Echo build complete (static frontend)
 npm run deploy      # Echo deploy message (configured in CI/CD)
 ```
 
+### Database Operations
+```bash
+# View existing leads in SQLite (development)
+sqlite3 backend/database/leads.db "SELECT * FROM leads ORDER BY created_at DESC LIMIT 10;"
+
+# Check database schema
+sqlite3 backend/database/leads.db ".schema leads"
+
+# Backup database
+cp backend/database/leads.db backend/database/leads_backup_$(date +%Y%m%d_%H%M%S).db
+```
+
 ### Database Management
 ```bash
 node backend/database/migrate.js              # Run database migrations
@@ -50,7 +62,7 @@ NODE_ENV=development npm start    # Force development mode
 - **Middleware**: `middleware/` - Custom middleware components
 - **Data**: `data/` - Application data storage
 - **Logs**: `logs/` - Application logging directory
-- **Default Port**: 3001 (configurable via .env PORT, 3002 mentioned in some docs but 3001 in .env.example)
+- **Default Port**: 3001 (configurable via .env PORT - note: server.js defaults to 3002 if PORT not set, but .env.example uses 3001)
 
 ### Frontend Structure (`frontend/`)
 - **Entry Point**: `index.html` - SPA with Three.js 3D scene
@@ -182,14 +194,22 @@ Lead table structure:
 - **n8n Integration**: `docs/N8N_INTEGRATION.md` - Complete automation workflows with templates
 - **Deployment Guide**: `docs/DEPLOY_GUIDE.md` - Free hosting setup (Netlify + Railway)
 
+### Development Workflow
+1. **Starting Development**: Run `npm run dev` (uses nodemon for auto-restart)
+2. **Database Setup**: Use `node setup.js` for first-time setup
+3. **Frontend Testing**: Open `http://localhost:3001` in browser (or configured PORT)
+4. **Admin Access**: Navigate to `http://localhost:3001/admin.html` for lead management
+5. **API Testing**: Use `http://localhost:3001/api/health` to verify backend is running
+
 ### Troubleshooting
 Common issues and solutions:
 
 **CORS Errors**: Check `CORS_ORIGIN` environment variable includes frontend URL
-**Database Connection**: Verify `DATABASE_PATH` or `DATABASE_URL` configuration
+**Database Connection**: Verify `DATABASE_PATH` or `DATABASE_URL` configuration  
 **n8n Webhook**: Test webhook URL with `curl -X POST {webhook_url} -H "Content-Type: application/json" -d "{}"`
 **Deployment Issues**: Check Railway logs with `railway logs --follow`
 **3D Scene Performance**: Reduce particle count in `three-scene.js` for low-end devices
+**Port Conflicts**: If port 3001 is in use, set different PORT in .env file
 
 ### File Structure Reference
 ```
