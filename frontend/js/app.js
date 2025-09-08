@@ -595,15 +595,5 @@ window.addEventListener('error', (e) => {
     }
 });
 
-// Service worker registration (se disponível)
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('✅ Service Worker registrado');
-            })
-            .catch(error => {
-                console.log('⚠️ Service Worker falhou:', error);
-            });
-    });
-}
+// Service Worker removido - não necessário para este projeto
+// Se precisar no futuro, criar arquivo sw.js na raiz do frontend
