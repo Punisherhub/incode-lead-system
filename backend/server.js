@@ -12,6 +12,9 @@ const configRoutes = require('./routes/config');
 // Usar PostgreSQL em produção, SQLite em desenvolvimento
 let dbModule;
 if (process.env.NODE_ENV === 'production' && process.env.DATABASE_URL) {
+    // Executar inicialização do PostgreSQL automaticamente
+    console.log('🔄 Inicializando PostgreSQL...');
+    require('./database/init-postgres-auto');
     dbModule = require('./database/postgres');
 } else {
     dbModule = require('./database/init');
