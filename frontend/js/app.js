@@ -12,8 +12,6 @@ class IncodeApp {
     }
     
     init() {
-        console.log('🚀 Inicializando Incode Academy Lead System...');
-        
         // Aguardar carregamento completo
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.onDOMReady());
@@ -23,8 +21,6 @@ class IncodeApp {
     }
     
     onDOMReady() {
-        console.log('✅ DOM carregado, inicializando componentes...');
-        
         // Aguardar um pouco para evitar conflitos
         setTimeout(() => {
             this.initializeComponents();
@@ -42,11 +38,7 @@ class IncodeApp {
             this.components.animations = window.incodeAnimations;
             this.components.formHandler = window.incodeFormHandler;
             
-            console.log('📊 Componentes inicializados:', {
-                threeScene: !!this.components.threeScene,
-                animations: !!this.components.animations,
-                formHandler: !!this.components.formHandler
-            });
+            // Componentes inicializados silenciosamente
             
             this.isLoaded = true;
             this.onAppReady();
@@ -54,7 +46,6 @@ class IncodeApp {
     }
     
     onAppReady() {
-        console.log('🎉 Aplicação totalmente carregada e pronta!');
         
         // Disparar evento customizado
         document.dispatchEvent(new CustomEvent('incodeAppReady', {
@@ -116,7 +107,7 @@ class IncodeApp {
     }
     
     onPageHidden() {
-        console.log('👁️ Página oculta - pausando animações pesadas');
+        // Página oculta - pausando animações
         
         // Pausar animações Three.js se disponível
         if (this.components.threeScene && this.components.threeScene.pauseAnimations) {
@@ -125,7 +116,7 @@ class IncodeApp {
     }
     
     onPageVisible() {
-        console.log('👁️ Página visível - retomando animações');
+        // Página visível - retomando animações
         
         // Retomar animações Three.js se disponível
         if (this.components.threeScene && this.components.threeScene.resumeAnimations) {
@@ -157,7 +148,7 @@ class IncodeApp {
     }
     
     onResize() {
-        console.log('📐 Redimensionamento detectado');
+        // Redimensionamento detectado
         
         // Notificar componentes sobre resize
         if (this.components.threeScene && this.components.threeScene.handleResize) {
@@ -325,7 +316,7 @@ class IncodeApp {
     }
     
     activateKonamiMode() {
-        console.log('🎮 KONAMI CODE ATIVADO!');
+        // Código especial ativado
         
         // Efeitos especiais
         if (this.components.threeScene) {
@@ -365,7 +356,7 @@ class IncodeApp {
             connection: navigator?.connection?.effectiveType || 'unknown'
         };
         
-        console.table(info);
+        // Debug info disponível
         this.showNotification('Debug info no console! 🐛', 'info');
     }
     
@@ -503,7 +494,7 @@ class IncodeApp {
             const entries = list.getEntries();
             entries.forEach(entry => {
                 if (entry.entryType === 'navigation') {
-                    console.log('📊 Performance:', {
+                    // Performance: {
                         domContentLoaded: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
                         loadComplete: entry.loadEventEnd - entry.loadEventStart,
                         total: entry.loadEventEnd - entry.navigationStart
@@ -515,7 +506,7 @@ class IncodeApp {
         try {
             observer.observe({ entryTypes: ['navigation'] });
         } catch (e) {
-            console.log('⚠️ Performance API não suportada');
+            // Performance API não suportada
         }
     }
     

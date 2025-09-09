@@ -15,24 +15,22 @@ class TechBackgroundController {
         if (!this.reducedMotion && !this.isLowPerformance) {
             this.init();
         } else if (!this.reducedMotion && this.isLowPerformance) {
-            this.initMinimal(); // Versão ultra-leve para dispositivos fracos
+            this.initMinimal(); 
         }
+        // Matrix Rain removido para simplificação
     }
 
     init() {
         // MODO EQUILIBRADO - Logos + elementos leves para profundidade
-        console.log('🚀 Tech Background: Modo equilibrado - logos + elementos leves + letras caindo');
-        
         // Criar apenas os elementos leves que sobraram
         this.createCircuitLines();
-        this.createGreenLettersRain();
         // holographic-overlay será controlado via CSS apenas
     }
 
     // Versão ultra-minimalista para dispositivos fracos
     initMinimal() {
-        // Mesmo comportamento ultra-clean
-        console.log('🚀 Tech Background: Modo minimal ativado - sem elementos');
+        // Apenas circuit lines para dispositivos fracos
+        this.createCircuitLines();
     }
 
     // Elementos tecnológicos flutuantes - REDUZIDO DRASTICAMENTE
@@ -148,69 +146,7 @@ class TechBackgroundController {
         }
     }
 
-    // Matrix Digital Rain - EFEITO CLÁSSICO OTIMIZADO
-    createGreenLettersRain() {
-        const container = document.querySelector('.green-letters-rain');
-        if (!container) {
-            console.log('⚠️ Container .green-letters-rain não encontrado!');
-            return;
-        }
-        console.log('✅ Iniciando Matrix Rain - Container encontrado!');
-
-        // Caracteres do Matrix + Python keywords
-        const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const pythonChars = ['def', 'for', 'if', 'class', 'import', 'PYTHON', '{}', '()', '[]'];
-        
-        // Número de colunas baseado na largura da tela (bem sutil)
-        const columns = Math.floor(window.innerWidth / (window.innerWidth < 768 ? 60 : 80));
-        const columnCount = Math.min(columns, window.innerWidth < 768 ? 8 : 12); // Máximo 8:12 colunas
-        
-        console.log(`🌧️ Criando ${columnCount} colunas Matrix`);
-        
-        for (let i = 0; i < columnCount; i++) {
-            this.createMatrixColumn(container, chars, pythonChars, i, columnCount);
-        }
-    }
-
-    createMatrixColumn(container, chars, pythonChars, index, totalColumns) {
-        const column = document.createElement('div');
-        column.className = 'matrix-column animate';
-        
-        // Gerar texto da coluna (15-25 caracteres)
-        const length = 15 + Math.floor(Math.random() * 10);
-        let text = '';
-        
-        for (let i = 0; i < length; i++) {
-            if (Math.random() < 0.15) { // 15% chance de palavra Python
-                text += pythonChars[Math.floor(Math.random() * pythonChars.length)] + '\n';
-            } else { // 85% caracteres normais
-                text += chars[Math.floor(Math.random() * chars.length)] + '\n';
-            }
-        }
-        
-        column.textContent = text;
-        
-        // Posicionamento distribuído
-        const xPos = (index / totalColumns) * 100 + (Math.random() * 5); // Distribuir + variação
-        column.style.left = xPos + '%';
-        
-        // Timing aleatório para não sincronizar
-        column.style.animationDelay = Math.random() * 5 + 's';
-        column.style.animationDuration = (8 + Math.random() * 6) + 's'; // 8-14s
-        
-        container.appendChild(column);
-        
-        // Remover após a animação e criar nova
-        setTimeout(() => {
-            if (column.parentNode) {
-                column.parentNode.removeChild(column);
-                // Criar nova coluna
-                setTimeout(() => {
-                    this.createMatrixColumn(container, chars, pythonChars, index, totalColumns);
-                }, Math.random() * 3000); // Delay de 0-3s
-            }
-        }, (8 + Math.random() * 6) * 1000);
-    }
+    // Matrix Rain removido para simplificação
 
     // Pausar/despausar animações (para compatibilidade mobile)
     pause() {
