@@ -8,25 +8,34 @@ class TechBackgroundController {
         this.isActive = true;
         this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         
-        if (!this.reducedMotion) {
+        // Detecção de performance para reduzir ainda mais efeitos
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        this.isLowPerformance = this.isMobile || navigator.hardwareConcurrency < 4;
+        
+        if (!this.reducedMotion && !this.isLowPerformance) {
             this.init();
+        } else if (!this.reducedMotion && this.isLowPerformance) {
+            this.initMinimal(); // Versão ultra-leve para dispositivos fracos
         }
     }
 
     init() {
-        this.createTechElements();
-        this.createCircuitLines();
-        this.createDataStreams();
-        this.createGlowOrbs();
-        this.createScanLines();
-        this.createTechNodes();
-        this.createMatrixRain();
+        // ULTRA SIMPLIFICADO - Apenas logos animados no fundo
+        console.log('🚀 Tech Background: Modo ultra-clean ativado - apenas logos');
+        // Todos os elementos pesados foram removidos
+        // O background agora será apenas o logo animado via CSS
     }
 
-    // Elementos tecnológicos flutuantes
+    // Versão ultra-minimalista para dispositivos fracos
+    initMinimal() {
+        // Mesmo comportamento ultra-clean
+        console.log('🚀 Tech Background: Modo minimal ativado - sem elementos');
+    }
+
+    // Elementos tecnológicos flutuantes - REDUZIDO DRASTICAMENTE
     createTechElements() {
         const container = document.querySelector('.tech-elements');
-        const elementCount = window.innerWidth < 768 ? 15 : 30;
+        const elementCount = window.innerWidth < 768 ? 3 : 6; // Era 15:30, agora 3:6
 
         for (let i = 0; i < elementCount; i++) {
             const element = document.createElement('div');
@@ -39,10 +48,10 @@ class TechBackgroundController {
         }
     }
 
-    // Linhas de circuito
+    // Linhas de circuito - REDUZIDO DRASTICAMENTE
     createCircuitLines() {
         const container = document.querySelector('.circuit-lines');
-        const lineCount = window.innerWidth < 768 ? 8 : 15;
+        const lineCount = window.innerWidth < 768 ? 2 : 4; // Era 8:15, agora 2:4
 
         for (let i = 0; i < lineCount; i++) {
             const line = document.createElement('div');
@@ -62,9 +71,9 @@ class TechBackgroundController {
         }
     }
 
-    // Streams de dados
+    // Streams de dados - REDUZIDO
     createDataStreams() {
-        const streamCount = window.innerWidth < 768 ? 3 : 6;
+        const streamCount = window.innerWidth < 768 ? 1 : 2; // Era 3:6, agora 1:2
 
         for (let i = 0; i < streamCount; i++) {
             const stream = document.createElement('div');
@@ -76,9 +85,9 @@ class TechBackgroundController {
         }
     }
 
-    // Orbes brilhantes
+    // Orbes brilhantes - REDUZIDO
     createGlowOrbs() {
-        const orbCount = window.innerWidth < 768 ? 4 : 8;
+        const orbCount = window.innerWidth < 768 ? 1 : 2; // Era 4:8, agora 1:2
 
         for (let i = 0; i < orbCount; i++) {
             const orb = document.createElement('div');
@@ -91,9 +100,9 @@ class TechBackgroundController {
         }
     }
 
-    // Linhas de scanner
+    // Linhas de scanner - REDUZIDO
     createScanLines() {
-        const scanCount = window.innerWidth < 768 ? 2 : 3;
+        const scanCount = window.innerWidth < 768 ? 0 : 1; // Era 2:3, agora 0:1
 
         for (let i = 0; i < scanCount; i++) {
             const scan = document.createElement('div');
@@ -104,9 +113,9 @@ class TechBackgroundController {
         }
     }
 
-    // Nós tecnológicos
+    // Nós tecnológicos - REDUZIDO DRASTICAMENTE
     createTechNodes() {
-        const nodeCount = window.innerWidth < 768 ? 10 : 20;
+        const nodeCount = window.innerWidth < 768 ? 2 : 4; // Era 10:20, agora 2:4
 
         for (let i = 0; i < nodeCount; i++) {
             const node = document.createElement('div');
@@ -119,10 +128,10 @@ class TechBackgroundController {
         }
     }
 
-    // Chuva da matrix (leve)
+    // Chuva da matrix - MUITO REDUZIDO
     createMatrixRain() {
         const container = document.querySelector('.matrix-rain');
-        const dropCount = window.innerWidth < 768 ? 20 : 40;
+        const dropCount = window.innerWidth < 768 ? 5 : 8; // Era 20:40, agora 5:8
         const characters = '01';
 
         for (let i = 0; i < dropCount; i++) {

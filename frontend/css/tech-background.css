@@ -1,6 +1,6 @@
-/* ===== TECHNOLOGICAL BACKGROUND ENHANCEMENTS ===== */
+/* ===== TECHNOLOGICAL BACKGROUND - ULTRA CLEAN VERSION ===== */
 
-/* Grid Tech Pattern */
+/* Grid sutil e minimalista */
 body::before {
     content: '';
     position: fixed;
@@ -9,333 +9,47 @@ body::before {
     width: 100%;
     height: 100%;
     background-image: 
-        linear-gradient(rgba(0, 255, 136, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 255, 136, 0.03) 1px, transparent 1px);
-    background-size: 50px 50px;
+        linear-gradient(rgba(0, 255, 136, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 136, 0.02) 1px, transparent 1px);
+    background-size: 100px 100px; /* Grid maior e mais espaçado */
     z-index: -10;
-    animation: gridMove 20s linear infinite;
+    animation: gridMove 40s linear infinite; /* Mais lento */
 }
 
 @keyframes gridMove {
     0% { transform: translate(0, 0); }
-    100% { transform: translate(50px, 50px); }
+    100% { transform: translate(100px, 100px); }
 }
 
-/* Cyber Hexagon Pattern */
-body::after {
-    content: '';
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2300ff88' fill-opacity='0.02'%3E%3Cpath d='M30 0l15 8.66v17.32L30 34.64 15 25.98V8.66z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    z-index: -9;
-    animation: hexMove 30s linear infinite reverse;
-}
+/* TODOS OS OUTROS ELEMENTOS FORAM REMOVIDOS PARA PERFORMANCE MÁXIMA */
 
-@keyframes hexMove {
-    0% { transform: translate(0, 0); }
-    100% { transform: translate(-60px, -60px); }
-}
-
-/* Floating Tech Elements */
-.tech-elements {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -8;
-    overflow: hidden;
-}
-
-.tech-element {
-    position: absolute;
-    opacity: 0.1;
-    animation: float 15s infinite linear;
-}
-
-.tech-element::before {
-    content: '';
-    position: absolute;
-    width: 2px;
-    height: 2px;
-    background: var(--primary-neon);
-    box-shadow: 0 0 10px var(--primary-neon);
-}
-
-/* Circuit Lines */
-.circuit-lines {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -7;
-}
-
-.circuit-line {
-    position: absolute;
-    background: linear-gradient(90deg, 
-        transparent 0%, 
-        rgba(0, 255, 136, 0.2) 20%, 
-        rgba(0, 255, 136, 0.4) 50%, 
-        rgba(0, 255, 136, 0.2) 80%, 
-        transparent 100%);
-    height: 1px;
-    animation: circuitFlow 8s infinite linear;
-}
-
-.circuit-line.vertical {
-    width: 1px;
-    height: 100%;
-    background: linear-gradient(180deg, 
-        transparent 0%, 
-        rgba(0, 153, 255, 0.2) 20%, 
-        rgba(0, 153, 255, 0.4) 50%, 
-        rgba(0, 153, 255, 0.2) 80%, 
-        transparent 100%);
-}
-
-@keyframes circuitFlow {
-    0% { transform: translateX(-100%); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateX(100vw); opacity: 0; }
-}
-
-.circuit-line.vertical {
-    animation: circuitFlowVertical 12s infinite linear;
-}
-
-@keyframes circuitFlowVertical {
-    0% { transform: translateY(-100%); opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { transform: translateY(100vh); opacity: 0; }
-}
-
-/* Data Streams */
-.data-stream {
-    position: fixed;
-    width: 2px;
-    height: 100px;
-    background: linear-gradient(180deg, 
-        transparent, 
-        var(--primary-neon), 
-        transparent);
-    animation: dataStream 6s infinite linear;
-    z-index: -6;
-}
-
-@keyframes dataStream {
-    0% { 
-        transform: translateY(-100px);
-        opacity: 0;
-    }
-    20% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { 
-        transform: translateY(100vh);
-        opacity: 0;
-    }
-}
-
-/* Glowing Orbs */
-.glow-orb {
-    position: fixed;
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--secondary-neon);
-    box-shadow: 
-        0 0 20px var(--secondary-neon),
-        0 0 40px var(--secondary-neon),
-        0 0 60px var(--secondary-neon);
-    animation: orbFloat 20s infinite ease-in-out;
-    z-index: -5;
-}
-
-@keyframes orbFloat {
-    0%, 100% { 
-        transform: translate(0, 0) scale(1);
-        opacity: 0.3;
-    }
-    25% { 
-        transform: translate(200px, -100px) scale(1.2);
-        opacity: 0.6;
-    }
-    50% { 
-        transform: translate(-150px, -200px) scale(0.8);
-        opacity: 0.4;
-    }
-    75% { 
-        transform: translate(-100px, 100px) scale(1.1);
-        opacity: 0.5;
-    }
-}
-
-/* Scanning Lines */
-.scan-line {
-    position: fixed;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg,
-        transparent,
-        rgba(0, 255, 136, 0.6),
-        rgba(0, 255, 136, 0.8),
-        rgba(0, 255, 136, 0.6),
-        transparent
-    );
-    box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
-    animation: scanDown 15s infinite linear;
-    z-index: -4;
-}
-
-@keyframes scanDown {
-    0% { 
-        top: -2px;
-        opacity: 0;
-    }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { 
-        top: 100vh;
-        opacity: 0;
-    }
-}
-
-/* Tech Nodes */
-.tech-node {
-    position: fixed;
-    width: 8px;
-    height: 8px;
-    border: 1px solid var(--primary-neon);
-    background: rgba(0, 255, 136, 0.1);
-    transform: rotate(45deg);
-    animation: nodeGlow 4s infinite alternate;
-    z-index: -3;
-}
-
-@keyframes nodeGlow {
-    0% { 
-        box-shadow: 0 0 5px var(--primary-neon);
-        background: rgba(0, 255, 136, 0.1);
-    }
-    100% { 
-        box-shadow: 0 0 25px var(--primary-neon);
-        background: rgba(0, 255, 136, 0.3);
-    }
-}
-
-/* Holographic Overlay */
-.holographic-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: 
-        radial-gradient(circle at 20% 80%, rgba(0, 255, 136, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 80% 20%, rgba(0, 153, 255, 0.05) 0%, transparent 50%),
-        radial-gradient(circle at 40% 40%, rgba(255, 0, 153, 0.03) 0%, transparent 50%);
-    z-index: -2;
-    animation: holographicShift 25s infinite ease-in-out;
-}
-
-@keyframes holographicShift {
-    0%, 100% { opacity: 0.7; }
-    33% { opacity: 0.4; }
-    66% { opacity: 0.9; }
-}
-
-/* Matrix Rain Effect (Light) */
+/* Containers vazios para compatibilidade (caso o JS ainda tente usar) */
+.tech-elements,
+.circuit-lines,
 .matrix-rain {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: -1;
+    display: none !important; /* Forçar ocultar */
 }
 
+/* Desabilitar qualquer outro efeito pesado */
+.data-stream,
+.glow-orb,
+.scan-line,
+.tech-node,
 .matrix-drop {
-    position: absolute;
-    color: var(--primary-neon);
-    font-family: 'Courier New', monospace;
-    font-size: 12px;
-    animation: matrixFall 8s infinite linear;
-    opacity: 0.1;
+    display: none !important;
 }
 
-@keyframes matrixFall {
-    0% {
-        transform: translateY(-100vh);
-        opacity: 0;
-    }
-    10% { opacity: 0.1; }
-    90% { opacity: 0.1; }
-    100% {
-        transform: translateY(100vh);
-        opacity: 0;
-    }
-}
-
-/* Responsive Adjustments */
+/* Mobile - desabilitar até o grid */
 @media (max-width: 768px) {
     body::before {
-        background-size: 30px 30px;
-        animation-duration: 30s;
-    }
-    
-    .circuit-line {
-        animation-duration: 12s;
-    }
-    
-    .scan-line {
-        animation-duration: 20s;
-    }
-    
-    .glow-orb {
-        width: 3px;
-        height: 3px;
-    }
-    
-    .matrix-drop {
-        font-size: 10px;
-        animation-duration: 12s;
+        display: none; /* Sem grid no mobile para máxima performance */
     }
 }
 
-/* Reduce motion for accessibility */
+/* Reduced motion - desabilitar tudo */
 @media (prefers-reduced-motion: reduce) {
-    body::before,
-    body::after,
-    .circuit-line,
-    .data-stream,
-    .glow-orb,
-    .scan-line,
-    .tech-node,
-    .holographic-overlay,
-    .matrix-drop {
+    body::before {
         animation: none;
+        background: none;
     }
-    
-    .tech-element {
-        animation: none;
-    }
-}
-
-/* Performance optimization */
-.tech-elements *,
-.circuit-lines *,
-.matrix-rain * {
-    will-change: transform;
-    backface-visibility: hidden;
-    transform-style: preserve-3d;
 }

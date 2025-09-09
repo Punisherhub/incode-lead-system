@@ -28,8 +28,7 @@ async function autoInitPostgreSQL() {
         
         if (existingTables.includes('leads') && existingTables.includes('analytics')) {
             console.log('✅ PostgreSQL já inicializado!');
-            await pool.end();
-            return;
+            return; // pool.end() será chamado no finally
         }
         
         console.log('🔧 Criando tabelas em falta...');

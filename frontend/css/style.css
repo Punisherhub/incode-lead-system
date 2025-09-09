@@ -107,7 +107,7 @@ body {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.15;
+    opacity: 0.25; /* Aumentado de 0.15 para maior visibilidade */
     z-index: -1;
     pointer-events: none;
     animation: logoBreathing 6s ease-in-out infinite;
@@ -124,7 +124,7 @@ body {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.08;
+    opacity: 0.15; /* Aumentado de 0.08 para maior visibilidade */
     z-index: -1;
     pointer-events: none;
     animation: logoFloat 10s ease-in-out infinite;
@@ -141,7 +141,7 @@ body {
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;
-    opacity: 0.08;
+    opacity: 0.15; /* Aumentado de 0.08 para maior visibilidade */
     z-index: -1;
     pointer-events: none;
     animation: logoFloat 12s ease-in-out infinite reverse;
@@ -778,11 +778,11 @@ body {
 
 @keyframes logoBreathing {
     0%, 100% { 
-        opacity: 0.15; 
+        opacity: 0.25; /* Aumentado para maior visibilidade */
         transform: translate(-50%, -50%) scale(1); 
     }
     50% { 
-        opacity: 0.25; 
+        opacity: 0.40; /* Aumentado para maior visibilidade */
         transform: translate(-50%, -50%) scale(1.05); 
     }
 }
@@ -790,11 +790,11 @@ body {
 @keyframes logoFloat {
     0%, 100% { 
         transform: translateY(0px) rotate(25deg); 
-        opacity: 0.08;
+        opacity: 0.15; /* Aumentado para maior visibilidade */
     }
     50% { 
         transform: translateY(-20px) rotate(30deg); 
-        opacity: 0.12;
+        opacity: 0.25; /* Aumentado para maior visibilidade */
     }
 }
 
