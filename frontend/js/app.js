@@ -494,11 +494,12 @@ class IncodeApp {
             const entries = list.getEntries();
             entries.forEach(entry => {
                 if (entry.entryType === 'navigation') {
-                    // Performance: {
+                    // Métricas de performance registradas silenciosamente
+                    const metrics = {
                         domContentLoaded: entry.domContentLoadedEventEnd - entry.domContentLoadedEventStart,
                         loadComplete: entry.loadEventEnd - entry.loadEventStart,
                         total: entry.loadEventEnd - entry.navigationStart
-                    });
+                    };
                 }
             });
         });
