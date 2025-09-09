@@ -1,52 +1,94 @@
-// Sistema de Animações Avançado para Incode Academy
+// Sistema de Animações OTIMIZADO para Incode Academy
 class IncodeAnimations {
     constructor() {
         this.typedInstance = null;
         this.matrixInterval = null;
         this.particleAnimations = [];
         
+        // Detecção de performance
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        this.isLowPerformance = this.detectLowPerformance();
+        this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        
+        // Configurar GSAP para performance
+        gsap.config({
+            force3D: !this.isLowPerformance, // Forçar GPU apenas se tiver performance
+            nullTargetWarn: false,
+            trialWarn: false
+        });
+        
         this.init();
+    }
+    
+    detectLowPerformance() {
+        return this.isMobile || 
+               navigator.hardwareConcurrency < 4 || 
+               navigator.deviceMemory < 4 ||
+               /Android [0-6]\.|iPhone [0-8]\.|iPad.*OS [0-9]\./.test(navigator.userAgent);
     }
     
     init() {
         this.initLoadingAnimation();
-        this.initCodeTyping();
-        this.initMatrixEffect();
-        this.initParticleEffects();
-        this.initScrollAnimations();
+        
+        // Só inicializar animações pesadas se tiver performance
+        if (!this.isLowPerformance && !this.reducedMotion) {
+            this.initCodeTyping();
+            this.initMatrixEffect();
+            this.initScrollAnimations();
+        }
+        
+        // Animações leves sempre
         this.initFormAnimations();
+        
+        // Particle effects apenas em desktop com boa performance
+        if (!this.isMobile && !this.isLowPerformance) {
+            this.initParticleEffects();
+        }
     }
     
     initLoadingAnimation() {
         const loadingScreen = document.getElementById('loading');
         
-        // Simular carregamento
+        // Loading mais rápido em dispositivos de baixa performance
+        const loadingTime = this.isLowPerformance ? 1500 : 2500;
+        
         setTimeout(() => {
             gsap.to(loadingScreen, {
                 opacity: 0,
-                duration: 1,
+                duration: this.isLowPerformance ? 0.5 : 1,
                 ease: "power2.out",
                 onComplete: () => {
                     loadingScreen.style.display = 'none';
                     this.startMainAnimations();
                 }
             });
-        }, 2500);
+        }, loadingTime);
     }
     
     startMainAnimations() {
-        // Animar entrada dos elementos principais
+        // Animações SIMPLIFICADAS baseadas na performance
+        if (this.isLowPerformance) {
+            // Apenas fade in simples para dispositivos fracos
+            gsap.from('.header, .hero-title, .hero-subtitle, .lead-form', {
+                opacity: 0,
+                duration: 0.5,
+                stagger: 0.1,
+                ease: "power2.out"
+            });
+            return;
+        }
+        
+        // Animações normais (mas reduzidas) para dispositivos bons
         const tl = gsap.timeline();
         
         tl.from('.header', {
-            y: -100,
+            y: -50, // Reduzido de -100
             opacity: 0,
-            duration: 1,
-            ease: "back.out(1.7)"
+            duration: 0.8, // Reduzido de 1
+            ease: "power2.out" // Ease mais simples
         })
         .from('.hero-title .glitch', {
-            scale: 0,
-            rotation: 360,
+            scale: 0.8, // Menos dramático
             opacity: 0,
             duration: 1,
             stagger: 0.3,

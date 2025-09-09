@@ -10,13 +10,26 @@ class IncodeThreeScene {
         this.mouse = { x: 0, y: 0 };
         this.windowHalf = { x: window.innerWidth / 2, y: window.innerHeight / 2 };
         
-        // Performance settings
+        // Performance settings - OTIMIZADO
         this.isMobile = this.detectMobile();
         this.isLowPerformance = this.detectLowPerformance();
-        this.animationSpeed = this.isMobile ? 0.3 : 0.5; // Animações mais suaves
+        this.animationSpeed = this.isMobile ? 0.2 : 0.3; // Animações ainda mais suaves
         this.lastTime = 0;
-        this.frameRate = this.isMobile ? 30 : 60; // FPS adaptativo
+        
+        // FPS adaptativo baseado em performance
+        if (this.isLowPerformance) {
+            this.frameRate = 15; // Dispositivos ruins
+        } else if (this.isMobile) {
+            this.frameRate = 30; // Mobile normal
+        } else {
+            this.frameRate = 45; // Desktop (reduzido de 60)
+        }
         this.frameInterval = 1000 / this.frameRate;
+        
+        // Performance monitoring
+        this.fpsCounter = 0;
+        this.lastFpsCheck = 0;
+        this.currentFps = this.frameRate;
         
         // Input focus control for mobile
         this.isInputFocused = false;
@@ -40,14 +53,25 @@ class IncodeThreeScene {
         const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
         if (!gl) return true;
         
+        // Verificar memória GPU limitada
+        const maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
+        const maxRenderBufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+        
+        // Dispositivos com limitações de GPU
+        if (maxTextureSize < 4096 || maxRenderBufferSize < 4096) return true;
+        
         const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
         if (debugInfo) {
             const renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
-            // Lista de GPUs de baixa performance
-            return /Mali|Adreno [0-9][0-9][0-9]|PowerVR|Intel/i.test(renderer);
+            // Lista expandida de GPUs de baixa performance
+            return /Mali-[0-9]00|Adreno [0-9][0-9][0-9]|PowerVR|Intel.*HD|SwiftShader|Vivante/i.test(renderer);
         }
         
-        return this.isMobile || navigator.hardwareConcurrency < 4;
+        // Outros indicadores de baixa performance
+        return this.isMobile || 
+               navigator.hardwareConcurrency < 4 || 
+               navigator.deviceMemory < 4 ||
+               /Android [0-6]\.|iPhone [0-9]\.|iPad.*OS [0-9]\./.test(navigator.userAgent);
     }
     
     setupInputFocusListeners() {
@@ -183,15 +207,29 @@ class IncodeThreeScene {
         );
         this.camera.position.z = 1000;
         
-        // Configurar renderer com otimizações
+        // Configurar renderer com otimizações MÁXIMAS
         this.renderer = new THREE.WebGLRenderer({ 
             alpha: true, 
-            antialias: !this.isMobile, // Desabilitar antialias no mobile
-            powerPreference: this.isMobile ? "low-power" : "high-performance"
+            antialias: false, // SEMPRE desabilitado para performance
+            powerPreference: this.isLowPerformance ? "low-power" : "default",
+            logarithmicDepthBuffer: false,
+            precision: this.isLowPerformance ? "lowp" : "mediump"
         });
+        
         this.renderer.setSize(window.innerWidth, window.innerHeight);
-        // Reduzir pixel ratio em dispositivos móveis para melhor performance
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, this.isMobile ? 1.5 : 2));
+        
+        // Pixel ratio ultra otimizado
+        let pixelRatio = 1;
+        if (!this.isLowPerformance) {
+            pixelRatio = this.isMobile ? 1.5 : Math.min(window.devicePixelRatio, 2);
+        }
+        this.renderer.setPixelRatio(pixelRatio);
+        
+        // Configurações de performance do renderer
+        this.renderer.shadowMap.enabled = false; // Shadows desabilitadas
+        this.renderer.shadowMap.autoUpdate = false;
+        this.renderer.sortObjects = false; // Não ordenar objetos
+        this.renderer.matrixAutoUpdate = false; // Não atualizar matrizes automaticamente
         
         // Adicionar ao container
         const container = document.getElementById('threejs-container');
@@ -205,12 +243,13 @@ class IncodeThreeScene {
     }
     
     createParticles() {
-        // Reduzir partículas baseado na performance do dispositivo
-        let particleCount = 2000;
-        if (this.isMobile) {
-            particleCount = 800; // Muito menos partículas no mobile
-        } else if (this.isLowPerformance) {
-            particleCount = 1200; // Quantidade intermediária para baixa performance
+        // Reduzir DRASTICAMENTE partículas para melhor performance
+        let particleCount = 500; // Base reduzida de 2000 para 500
+        
+        if (this.isLowPerformance) {
+            particleCount = 150; // Dispositivos ruins: apenas 150
+        } else if (this.isMobile) {
+            particleCount = 300; // Mobile normal: 300  
         }
         const geometry = new THREE.BufferGeometry();
         const positions = new Float32Array(particleCount * 3);
@@ -255,7 +294,14 @@ class IncodeThreeScene {
     }
     
     createFloatingCubes() {
-        const cubeCount = 50;
+        // Reduzir cubos baseado na performance
+        let cubeCount = 15; // Base reduzida de 50 para 15
+        
+        if (this.isLowPerformance) {
+            cubeCount = 5; // Dispositivos ruins: apenas 5
+        } else if (this.isMobile) {
+            cubeCount = 10; // Mobile: 10
+        }
         
         for (let i = 0; i < cubeCount; i++) {
             // Geometria do cubo

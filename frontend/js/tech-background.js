@@ -8,9 +8,22 @@ class TechBackgroundController {
         this.isActive = true;
         this.reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         
-        if (!this.reducedMotion) {
+        // Detecção de performance OTIMIZADA
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+        this.isLowPerformance = this.detectLowPerformance();
+        
+        if (!this.reducedMotion && !this.isLowPerformance) {
             this.init();
+        } else {
+            console.log('🚀 Tech background DESABILITADO para otimizar performance');
         }
+    }
+    
+    detectLowPerformance() {
+        return this.isMobile || 
+               navigator.hardwareConcurrency < 4 || 
+               navigator.deviceMemory < 4 ||
+               /Android [0-6]\.|iPhone [0-8]\.|iPad.*OS [0-9]\./.test(navigator.userAgent);
     }
 
     init() {
@@ -23,10 +36,13 @@ class TechBackgroundController {
         this.createMatrixRain();
     }
 
-    // Elementos tecnológicos flutuantes
+    // Elementos tecnológicos flutuantes - ULTRA OTIMIZADO
     createTechElements() {
         const container = document.querySelector('.tech-elements');
-        const elementCount = window.innerWidth < 768 ? 15 : 30;
+        if (!container) return;
+        
+        // Reduzir DRASTICAMENTE o número de elementos
+        const elementCount = window.innerWidth < 768 ? 5 : 10; // De 15/30 para 5/10
 
         for (let i = 0; i < elementCount; i++) {
             const element = document.createElement('div');
@@ -39,10 +55,12 @@ class TechBackgroundController {
         }
     }
 
-    // Linhas de circuito
+    // Linhas de circuito - OTIMIZADO
     createCircuitLines() {
         const container = document.querySelector('.circuit-lines');
-        const lineCount = window.innerWidth < 768 ? 8 : 15;
+        if (!container) return;
+        
+        const lineCount = window.innerWidth < 768 ? 3 : 6; // De 8/15 para 3/6
 
         for (let i = 0; i < lineCount; i++) {
             const line = document.createElement('div');

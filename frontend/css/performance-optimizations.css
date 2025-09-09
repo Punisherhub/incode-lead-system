@@ -1,0 +1,182 @@
+/* Performance Optimizations CSS */
+/* Baseado nas classes aplicadas pelo Performance Manager */
+
+/* TIER: MINIMAL - Máxima performance */
+.perf-minimal * {
+    animation-duration: calc(var(--animation-duration-multiplier, 0.3) * 1s) !important;
+    transition-duration: calc(var(--animation-duration-multiplier, 0.3) * 0.3s) !important;
+}
+
+.perf-minimal .tech-elements,
+.perf-minimal .circuit-lines,
+.perf-minimal .data-streams,
+.perf-minimal .glow-orbs,
+.perf-minimal .scan-lines,
+.perf-minimal .tech-nodes,
+.perf-minimal .matrix-rain {
+    display: none !important;
+}
+
+.perf-minimal #threejs-container {
+    display: none !important;
+}
+
+/* TIER: LOW - Performance básica */
+.perf-low .tech-elements {
+    opacity: calc(var(--effect-opacity, 0.3));
+}
+
+.perf-low .circuit-lines,
+.perf-low .data-streams,
+.perf-low .glow-orbs {
+    opacity: calc(var(--effect-opacity, 0.3) * 0.5);
+}
+
+.perf-low .scan-lines,
+.perf-low .matrix-rain {
+    display: none !important;
+}
+
+.perf-low * {
+    animation-duration: calc(var(--animation-duration-multiplier, 0.5) * 1s) !important;
+}
+
+/* TIER: MEDIUM - Performance moderada */
+.perf-medium .tech-elements,
+.perf-medium .circuit-lines {
+    opacity: calc(var(--effect-opacity, 0.6));
+}
+
+.perf-medium .matrix-rain {
+    opacity: calc(var(--effect-opacity, 0.6) * 0.3);
+}
+
+/* TIER: HIGH - Máxima qualidade */
+.perf-high .tech-elements,
+.perf-high .circuit-lines,
+.perf-high .matrix-rain {
+    opacity: var(--effect-opacity, 1);
+}
+
+/* Otimizações para dispositivos móveis */
+.is-mobile #threejs-container {
+    transform: scale(0.8);
+    opacity: 0.7;
+}
+
+.is-mobile .tech-elements {
+    transform: scale(0.9);
+}
+
+.is-mobile * {
+    animation-timing-function: ease-out !important;
+}
+
+/* Otimizações para baixa performance */
+.is-low-performance * {
+    will-change: auto !important;
+    transform: translateZ(0); /* Force GPU layer apenas quando necessário */
+}
+
+.is-low-performance .glitch-effect,
+.is-low-performance .pulse-effect,
+.is-low-performance .float-animation {
+    animation-iteration-count: 1 !important;
+    animation-fill-mode: forwards !important;
+}
+
+/* Otimizações quando página está oculta */
+.page-hidden * {
+    animation-play-state: paused !important;
+    transition: none !important;
+}
+
+.page-hidden #threejs-container {
+    visibility: hidden;
+}
+
+/* Otimizações durante scroll */
+.is-scrolling .tech-elements,
+.is-scrolling .circuit-lines,
+.is-scrolling #threejs-container {
+    pointer-events: none;
+    animation-play-state: paused;
+}
+
+/* Reduzir motion para usuários que preferem */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+    
+    .tech-elements,
+    .circuit-lines,
+    .matrix-rain,
+    #threejs-container {
+        display: none !important;
+    }
+}
+
+/* Otimizações de CSS para melhor rendering */
+.performance-optimized {
+    backface-visibility: hidden;
+    perspective: 1000px;
+}
+
+.performance-optimized * {
+    box-sizing: border-box;
+    outline: none;
+}
+
+/* Forçar compositing apenas quando necessário */
+.high-performance-element {
+    will-change: transform, opacity;
+    transform: translateZ(0);
+}
+
+/* Remover will-change após animações */
+.animation-complete {
+    will-change: auto;
+}
+
+/* Container queries para dispositivos pequenos */
+@container (max-width: 480px) {
+    .tech-elements {
+        display: none;
+    }
+    
+    #threejs-container {
+        transform: scale(0.7);
+    }
+}
+
+/* Otimizações específicas para GPUs fracas */
+.weak-gpu * {
+    filter: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+}
+
+.weak-gpu .gradient-background {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%) !important;
+}
+
+/* Debug - Mostrar tier de performance (removível em produção) */
+body::before {
+    content: "Performance: " attr(class);
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 9999;
+    pointer-events: none;
+    display: none; /* Ativar apenas para debug */
+}
