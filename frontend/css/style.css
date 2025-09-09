@@ -174,7 +174,7 @@ body {
     overflow: hidden;
 }
 
-/* ===== GREEN LETTERS RAIN - OTIMIZADO ===== */
+/* ===== MATRIX DIGITAL RAIN - ESTILO CLÁSSICO ===== */
 .green-letters-rain {
     position: fixed;
     top: 0;
@@ -184,42 +184,70 @@ body {
     z-index: -3;
     pointer-events: none;
     overflow: hidden;
-}
-
-.green-letter {
-    position: absolute;
     font-family: 'Orbitron', 'Courier New', monospace;
-    font-size: 18px;
-    font-weight: 600;
-    color: #00ff88;
-    text-shadow: 0 0 10px #00ff88;
-    opacity: 0.7;
-    will-change: transform, opacity;
-    animation: letterFall linear infinite;
 }
 
-@keyframes letterFall {
+.matrix-column {
+    position: absolute;
+    top: 0;
+    font-size: 16px;
+    line-height: 1.2;
+    color: #00ff88;
+    text-shadow: 0 0 8px #00ff88;
+    opacity: 0.6;
+    will-change: transform;
+    white-space: pre;
+    letter-spacing: 1px;
+}
+
+/* Efeito de fade gradual de cima para baixo */
+.matrix-column::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: linear-gradient(to bottom, 
+        rgba(0, 255, 136, 0.9) 0%,
+        rgba(0, 255, 136, 0.3) 50%,
+        transparent 100%
+    );
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Animação de descida */
+@keyframes matrixRain {
     0% {
-        transform: translateY(-100px);
+        transform: translateY(-100vh);
         opacity: 0;
     }
-    10% {
-        opacity: 0.7;
+    5% {
+        opacity: 0.6;
     }
-    90% {
-        opacity: 0.7;
+    95% {
+        opacity: 0.6;
     }
     100% {
-        transform: translateY(calc(100vh + 100px));
+        transform: translateY(100vh);
         opacity: 0;
     }
+}
+
+.matrix-column.animate {
+    animation: matrixRain linear infinite;
 }
 
 /* Reduzir no mobile para performance */
 @media (max-width: 768px) {
-    .green-letter {
-        font-size: 14px;
-        opacity: 0.5;
+    .matrix-column {
+        font-size: 12px;
+        opacity: 0.4;
+        line-height: 1.1;
+    }
+    .matrix-column::before {
+        height: 40px;
     }
 }
 
