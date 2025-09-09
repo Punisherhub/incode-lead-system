@@ -151,15 +151,21 @@ class TechBackgroundController {
     // Matrix Digital Rain - EFEITO CLÁSSICO OTIMIZADO
     createGreenLettersRain() {
         const container = document.querySelector('.green-letters-rain');
-        if (!container) return;
+        if (!container) {
+            console.log('⚠️ Container .green-letters-rain não encontrado!');
+            return;
+        }
+        console.log('✅ Iniciando Matrix Rain - Container encontrado!');
 
         // Caracteres do Matrix + Python keywords
-        const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        const chars = '01ABCDEFGHIJKLMNOPQRSTUVWXYZ';
         const pythonChars = ['def', 'for', 'if', 'class', 'import', 'PYTHON', '{}', '()', '[]'];
         
         // Número de colunas baseado na largura da tela (bem sutil)
         const columns = Math.floor(window.innerWidth / (window.innerWidth < 768 ? 60 : 80));
         const columnCount = Math.min(columns, window.innerWidth < 768 ? 8 : 12); // Máximo 8:12 colunas
+        
+        console.log(`🌧️ Criando ${columnCount} colunas Matrix`);
         
         for (let i = 0; i < columnCount; i++) {
             this.createMatrixColumn(container, chars, pythonChars, i, columnCount);
