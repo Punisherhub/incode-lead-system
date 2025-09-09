@@ -156,6 +156,10 @@ if __name__ == '__main__':
     
     initMatrixEffect() {
         const matrixContainer = document.getElementById('matrix-code');
+        if (!matrixContainer) {
+            console.log('⚠️ Matrix container não encontrado - elemento foi removido para otimização');
+            return;
+        }
         const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+-=[]{}|;:,.<>?';
         const pythonKeywords = ['def', 'class', 'import', 'from', 'if', 'else', 'for', 'while', 'print', 'return'];
         
@@ -261,6 +265,10 @@ if __name__ == '__main__':
         };
         
         const particlesContainer = document.getElementById('particles');
+        if (!particlesContainer) {
+            console.log('⚠️ Particles container não encontrado - elemento foi removido para otimização');
+            return;
+        }
         
         // Criar partículas continuamente
         setInterval(() => {

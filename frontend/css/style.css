@@ -174,6 +174,62 @@ body {
     overflow: hidden;
 }
 
+/* ===== GREEN LETTERS RAIN - OTIMIZADO ===== */
+.green-letters-rain {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -3;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.green-letter {
+    position: absolute;
+    font-family: 'Orbitron', 'Courier New', monospace;
+    font-size: 18px;
+    font-weight: 600;
+    color: #00ff88;
+    text-shadow: 0 0 10px #00ff88;
+    opacity: 0.7;
+    will-change: transform, opacity;
+    animation: letterFall linear infinite;
+}
+
+@keyframes letterFall {
+    0% {
+        transform: translateY(-100px);
+        opacity: 0;
+    }
+    10% {
+        opacity: 0.7;
+    }
+    90% {
+        opacity: 0.7;
+    }
+    100% {
+        transform: translateY(calc(100vh + 100px));
+        opacity: 0;
+    }
+}
+
+/* Reduzir no mobile para performance */
+@media (max-width: 768px) {
+    .green-letter {
+        font-size: 14px;
+        opacity: 0.5;
+    }
+}
+
+/* Disable em dispositivos com motion reduzido */
+@media (prefers-reduced-motion: reduce) {
+    .green-letters-rain {
+        display: none;
+    }
+}
+
 /* ===== MAIN CONTAINER ===== */
 .main-container {
     height: 100vh;
