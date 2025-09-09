@@ -21,10 +21,11 @@ class TechBackgroundController {
 
     init() {
         // MODO EQUILIBRADO - Logos + elementos leves para profundidade
-        console.log('🚀 Tech Background: Modo equilibrado - logos + elementos leves');
+        console.log('🚀 Tech Background: Modo equilibrado - logos + elementos leves + letras caindo');
         
         // Criar apenas os elementos leves que sobraram
         this.createCircuitLines();
+        this.createGreenLettersRain();
         // holographic-overlay será controlado via CSS apenas
     }
 
@@ -147,6 +148,29 @@ class TechBackgroundController {
         }
     }
 
+    // Letras caindo verdes - ULTRA OTIMIZADO
+    createGreenLettersRain() {
+        const container = document.querySelector('.green-letters-rain');
+        if (!container) return;
+
+        // Letras de programação Python/tech
+        const letters = ['P', 'Y', 'T', 'H', 'O', 'N', '{', '}', '(', ')', 'def', 'for', 'if', '01', '10', 'AI', 'ML'];
+        const letterCount = window.innerWidth < 768 ? 6 : 10; // Bem reduzido para performance
+        
+        for (let i = 0; i < letterCount; i++) {
+            const letter = document.createElement('div');
+            letter.className = 'green-letter';
+            letter.textContent = letters[Math.floor(Math.random() * letters.length)];
+            
+            // Posicionamento aleatório
+            letter.style.left = Math.random() * 100 + '%';
+            letter.style.animationDelay = Math.random() * 5 + 's';
+            letter.style.animationDuration = (6 + Math.random() * 4) + 's'; // 6-10s
+            
+            container.appendChild(letter);
+        }
+    }
+
     // Pausar/despausar animações (para compatibilidade mobile)
     pause() {
         this.isActive = false;
@@ -161,7 +185,7 @@ class TechBackgroundController {
     // Destruir elementos (para limpeza)
     destroy() {
         const elements = document.querySelectorAll(
-            '.tech-element, .circuit-line, .data-stream, .glow-orb, .scan-line, .tech-node, .matrix-drop'
+            '.tech-element, .circuit-line, .data-stream, .glow-orb, .scan-line, .tech-node, .matrix-drop, .green-letter'
         );
         elements.forEach(el => el.remove());
     }
