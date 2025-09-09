@@ -20,10 +20,12 @@ class TechBackgroundController {
     }
 
     init() {
-        // ULTRA SIMPLIFICADO - Apenas logos animados no fundo
-        console.log('🚀 Tech Background: Modo ultra-clean ativado - apenas logos');
-        // Todos os elementos pesados foram removidos
-        // O background agora será apenas o logo animado via CSS
+        // MODO EQUILIBRADO - Logos + elementos leves para profundidade
+        console.log('🚀 Tech Background: Modo equilibrado - logos + elementos leves');
+        
+        // Criar apenas os elementos leves que sobraram
+        this.createCircuitLines();
+        // holographic-overlay será controlado via CSS apenas
     }
 
     // Versão ultra-minimalista para dispositivos fracos
@@ -48,10 +50,10 @@ class TechBackgroundController {
         }
     }
 
-    // Linhas de circuito - REDUZIDO DRASTICAMENTE
+    // Linhas de circuito - ULTRA LEVES para profundidade sutil
     createCircuitLines() {
         const container = document.querySelector('.circuit-lines');
-        const lineCount = window.innerWidth < 768 ? 2 : 4; // Era 8:15, agora 2:4
+        const lineCount = window.innerWidth < 768 ? 1 : 2; // Ainda mais reduzido: 1:2
 
         for (let i = 0; i < lineCount; i++) {
             const line = document.createElement('div');

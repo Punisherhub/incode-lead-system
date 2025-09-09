@@ -1,19 +1,16 @@
 /* ===== TECHNOLOGICAL BACKGROUND - ULTRA CLEAN VERSION ===== */
 
-/* Grid sutil e minimalista */
+/* Grid TOTALMENTE DESABILITADO */
 body::before {
+    display: none !important; /* FORÇAR OCULTAR */
     content: '';
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-image: 
-        linear-gradient(rgba(0, 255, 136, 0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 255, 136, 0.02) 1px, transparent 1px);
-    background-size: 100px 100px; /* Grid maior e mais espaçado */
+    /* Grid removido completamente */
     z-index: -10;
-    animation: gridMove 40s linear infinite; /* Mais lento */
 }
 
 @keyframes gridMove {
