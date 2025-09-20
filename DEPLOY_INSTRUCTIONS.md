@@ -9,15 +9,20 @@ git push origin master
 
 ### 2. 🗄️ ATUALIZAR BANCO POSTGRESQL EM PRODUÇÃO
 
-**⚡ COMANDO CRÍTICO - Execute IMEDIATAMENTE após deploy:**
+**⚡ COMANDOS CRÍTICOS - Execute NA ORDEM após deploy:**
 
 ```bash
 # Navegar até o diretório do projeto em produção
 cd /app  # ou onde estiver o projeto
 
-# Executar script de correção de timezone
+# 1. PRIMEIRO: Corrigir schema PostgreSQL (adicionar colunas que faltam)
+node backend/database/fix-postgres-schema.js
+
+# 2. DEPOIS: Executar script de correção de timezone
 node backend/database/fix-timezone-postgres.js
 ```
+
+**⚠️ IMPORTANTE: Execute os comandos nesta ordem exata!**
 
 ### 3. ✅ VERIFICAR SE FUNCIONOU
 
