@@ -36,23 +36,15 @@ class IncodeFormHandler {
             this.handleFormSubmit();
         });
         
-        // Fechar modal
-        const closeModal = document.getElementById('close-modal');
-        if (closeModal) {
-            closeModal.addEventListener('click', () => {
-                if (window.incodeAnimations) {
-                    window.incodeAnimations.hideSuccessModal();
-                }
-            });
-        }
-        
-        // Fechar modal clicando fora
+        // Fechar modal - event listener será adicionado dinamicamente no showCustomModal
+        // Mantendo este espaço para compatibilidade com modals estáticos
+
+        // Fechar modal clicando fora - usando método confiável
         if (this.modal) {
             this.modal.addEventListener('click', (e) => {
                 if (e.target === this.modal) {
-                    if (window.incodeAnimations) {
-                        window.incodeAnimations.hideSuccessModal();
-                    }
+                    console.log('🔄 Fechando modal clicando fora...');
+                    this.hideModalCompletely();
                 }
             });
         }
@@ -278,27 +270,30 @@ class IncodeFormHandler {
             // Enviar para API
             const response = await this.sendToAPI(leadData);
             
+            console.log('🔍 Resposta completa da API:', response);
+
             if (response.success) {
-                console.log('✅ Lead cadastrado com sucesso!');
-                
-                // Mostrar modal de sucesso
-                if (window.incodeAnimations) {
-                    window.incodeAnimations.showSuccessModal();
-                }
-                
-                // Limpar formulário
-                this.form.reset();
-                
-                // Remover todos os erros
-                this.clearAllErrors();
-                
+                console.log('✅ Lead processado com sucesso!', response);
+
                 // Disparar evento personalizado
                 document.dispatchEvent(new CustomEvent('leadCaptured', {
                     detail: { leadData, response }
                 }));
-                
+
+                // Mostrar modal diretamente baseado na resposta
+                this.showCustomModal(response);
+
+                // Limpar formulário apenas se não for participação existente
+                if (!response.existingParticipation) {
+                    this.form.reset();
+                }
+
+                // Remover todos os erros
+                this.clearAllErrors();
+
             } else {
-                throw new Error(response.error || 'Erro desconhecido');
+                console.error('❌ Response.success = false:', response);
+                throw new Error(response.error || response.message || 'Erro desconhecido');
             }
             
         } catch (error) {
@@ -419,16 +414,159 @@ class IncodeFormHandler {
         });
     }
     
+    // Mostrar modal personalizado baseado na resposta (versão simplificada e confiável)
+    showCustomModal(response) {
+        console.log('🎭 showCustomModal chamado com:', response);
+
+        const modal = document.getElementById('success-modal');
+        if (!modal) {
+            console.error('❌ Modal não encontrado!');
+            return;
+        }
+
+        const modalContent = modal.querySelector('.modal-content');
+        if (!modalContent) {
+            console.error('❌ Modal content não encontrado!');
+            return;
+        }
+
+        // Determinar qual modal mostrar baseado na resposta
+        let modalHTML = '';
+
+        // Lead já existe (re-cadastro)
+        if (!response.isNewLead && !response.isNewParticipation) {
+            console.log('🔄 Preparando modal para lead existente...');
+            const timestampInfo = response.timestamp ? `<small style="color: #666; margin-top: 10px; display: block;">Atualizado em: ${response.timestamp}</small>` : '';
+            modalHTML = `
+                <div class="success-animation">
+                    <div class="checkmark">
+                        <svg viewBox="0 0 52 52">
+                            <circle cx="26" cy="26" r="25" fill="none"/>
+                            <path fill="none" d="m14.1,27.2l7.1,7.2 16.7-16.8"/>
+                        </svg>
+                    </div>
+                </div>
+                <h3>Bem-vindo de volta! 🎯</h3>
+                <p><strong>${response.message}</strong></p>
+                <p>Seus dados foram atualizados em nosso sistema. Nossa equipe entrará em contato em breve!</p>
+                ${timestampInfo}
+                <button id="close-modal" class="modal-btn">Continuar</button>
+            `;
+        } else {
+            // Lead novo - modal padrão
+            console.log('✨ Preparando modal para lead novo...');
+            const timestampInfo = response.timestamp ? `<small style="color: #666; margin-top: 10px; display: block;">Cadastrado em: ${response.timestamp}</small>` : '';
+            modalHTML = `
+                <div class="success-animation">
+                    <div class="checkmark">
+                        <svg viewBox="0 0 52 52">
+                            <circle cx="26" cy="26" r="25" fill="none"/>
+                            <path fill="none" d="m14.1,27.2l7.1,7.2 16.7-16.8"/>
+                        </svg>
+                    </div>
+                </div>
+                <h3>Bem-vindo à Incode Academy! 🚀</h3>
+                <p>Seus dados foram salvos com sucesso! Em breve nossa equipe entrará em contato.</p>
+                ${timestampInfo}
+                <button id="close-modal" class="modal-btn">Continuar Explorando</button>
+            `;
+        }
+
+        // STEP 1: Esconder modal completamente primeiro
+        console.log('🔄 Escondendo modal primeiro...');
+        modal.style.display = 'none';
+        modal.style.opacity = '0';
+
+        // Parar qualquer animação GSAP em andamento
+        if (window.gsap) {
+            window.gsap.killTweensOf(modal);
+            window.gsap.killTweensOf('.modal-content');
+            window.gsap.killTweensOf('.checkmark');
+            window.gsap.killTweensOf('.modal-content h3, .modal-content p');
+        }
+
+        // STEP 2: Atualizar conteúdo
+        modalContent.innerHTML = modalHTML;
+
+        // STEP 3: Configurar event listener limpo do botão fechar
+        const closeBtn = modal.querySelector('#close-modal');
+        if (closeBtn) {
+            // Remover listeners antigos clonando o botão
+            const newCloseBtn = closeBtn.cloneNode(true);
+            closeBtn.parentNode.replaceChild(newCloseBtn, closeBtn);
+
+            // Adicionar listener limpo
+            newCloseBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('🔄 Fechando modal via botão...');
+                this.hideModalCompletely();
+            });
+        }
+
+        // STEP 4: Aguardar e mostrar modal
+        setTimeout(() => {
+            console.log('🎭 Exibindo modal agora...');
+
+            // Mostrar o modal com CSS direto (sem animação complexa)
+            modal.style.display = 'block';
+            modal.style.opacity = '1';
+            modal.style.zIndex = '999999';
+            modal.style.position = 'fixed';
+            modal.style.top = '0';
+            modal.style.left = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+
+            // Garantir posicionamento central correto
+            const content = modal.querySelector('.modal-content');
+            if (content) {
+                content.style.position = 'fixed';
+                content.style.top = '50%';
+                content.style.left = '50%';
+                content.style.transform = 'translate(-50%, -50%)';
+                content.style.zIndex = '1001';
+                content.style.opacity = '1';
+            }
+
+            console.log('✅ Modal exibido com CSS direto!');
+
+            // Verificar se está visível
+            const isVisible = modal.offsetHeight > 0;
+            console.log('🔍 Modal visível:', isVisible);
+
+        }, 200); // Delay menor para resposta mais rápida
+    }
+
+    // Método para esconder modal completamente
+    hideModalCompletely() {
+        const modal = document.getElementById('success-modal');
+        if (modal) {
+            console.log('🔄 Escondendo modal completamente...');
+
+            // Parar animações
+            if (window.gsap) {
+                window.gsap.killTweensOf(modal);
+                window.gsap.killTweensOf('.modal-content');
+            }
+
+            // Esconder com CSS direto
+            modal.style.display = 'none';
+            modal.style.opacity = '0';
+        }
+    }
+
     // Método público para analytics
     trackEvent(eventName, data) {
         // Integração com Google Analytics, Facebook Pixel, etc.
         console.log('📊 Evento:', eventName, data);
-        
+
         // Google Analytics (se disponível)
         if (typeof gtag !== 'undefined') {
             gtag('event', eventName, data);
         }
-        
+
         // Facebook Pixel (se disponível)
         if (typeof fbq !== 'undefined') {
             fbq('track', eventName, data);

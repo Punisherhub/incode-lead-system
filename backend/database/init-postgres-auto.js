@@ -47,8 +47,8 @@ async function autoInitPostgreSQL() {
                     user_agent TEXT,
                     origem VARCHAR(50) DEFAULT 'website',
                     status VARCHAR(50) DEFAULT 'novo',
-                    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    data_atualizacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    data_criacao TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'America/Sao_Paulo'),
+                    data_atualizacao TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'America/Sao_Paulo'),
                     enviado_n8n BOOLEAN DEFAULT FALSE,
                     tentativas_n8n INTEGER DEFAULT 0,
                     ultimo_erro_n8n TEXT,
@@ -84,7 +84,7 @@ async function autoInitPostgreSQL() {
                     dados TEXT,
                     ip_address VARCHAR(45),
                     user_agent TEXT,
-                    data_evento TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    data_evento TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'America/Sao_Paulo')
                 )
             `;
             

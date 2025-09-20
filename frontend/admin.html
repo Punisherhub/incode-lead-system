@@ -1090,7 +1090,10 @@
             <select class="filter-select" id="courseFilter">
                 <option value="">📚 Todos os cursos</option>
             </select>
-            <button class="refresh-btn" id="refreshBtn">🔄 Atualizar Dados</button>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="refresh-btn" id="refreshBtn">🔄 Atualizar Dados</button>
+                <button class="refresh-btn" id="exportBtn" style="background: linear-gradient(45deg, #28a745, #20c997); border: 1px solid #28a745;">📊 Exportar Excel</button>
+            </div>
         </div>
         
         <div class="leads-table">
@@ -1218,7 +1221,7 @@
                         <div class="lead-age">${lead.idade}</div>
                         <div class="lead-course">${lead.curso}</div>
                         <div class="lead-day">${diaWorkshop}</div>
-                        <div class="lead-date">${formatDate(lead.data_criacao)}</div>
+                        <div class="lead-date">${formatDateWithStatus(lead)}</div>
                         <div>
                             <button class="delete-btn" onclick="deleteLead(${lead.id}, '${lead.nome.replace(/'/g, "\\'")}')">
                                 🗑️ Remover
@@ -1269,7 +1272,22 @@
             const formatter = new Intl.DateTimeFormat('pt-BR', options);
             return formatter.format(date);
         }
-        
+
+        // Função melhorada para mostrar data com indicador de atualização
+        function formatDateWithStatus(lead) {
+            const criacao = new Date(lead.data_criacao);
+            const atualizacao = new Date(lead.data_atualizacao);
+
+            // Se as datas são diferentes (mais de 1 minuto de diferença), foi atualizado
+            const diffMinutos = Math.abs(atualizacao - criacao) / (1000 * 60);
+
+            if (diffMinutos > 1) {
+                return `${formatDate(lead.data_atualizacao)}<br><small style="color: #ffa500;">🔄 Atualizado</small>`;
+            } else {
+                return formatDate(lead.data_criacao);
+            }
+        }
+
         // Função de busca
         function filterLeads() {
             const searchTerm = searchBox.value.toLowerCase();
@@ -1295,6 +1313,55 @@
             loadStats();
             loadLeads();
         });
+
+        // Event listener para exportar leads
+        document.getElementById('exportBtn').addEventListener('click', exportarLeads);
+
+        // Função para exportar leads para Excel
+        async function exportarLeads() {
+            const exportBtn = document.getElementById('exportBtn');
+            const originalText = exportBtn.innerHTML;
+
+            try {
+                exportBtn.disabled = true;
+                exportBtn.innerHTML = '⏳ Exportando...';
+
+                // Fazer download direto do CSV
+                const response = await fetch('/api/export/leads?formato=csv');
+
+                if (response.ok) {
+                    // Criar blob e fazer download
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `leads_incode_${new Date().toISOString().split('T')[0]}.csv`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                    // Mostrar sucesso
+                    exportBtn.innerHTML = '✅ Exportado!';
+                    setTimeout(() => {
+                        exportBtn.innerHTML = originalText;
+                        exportBtn.disabled = false;
+                    }, 2000);
+
+                    console.log('📊 Leads exportados com sucesso!');
+                } else {
+                    throw new Error('Erro ao exportar leads');
+                }
+
+            } catch (error) {
+                console.error('Erro ao exportar leads:', error);
+                exportBtn.innerHTML = '❌ Erro!';
+                setTimeout(() => {
+                    exportBtn.innerHTML = originalText;
+                    exportBtn.disabled = false;
+                }, 2000);
+            }
+        }
         
         // Carregar dados iniciais apenas se logado
         // (removido - agora só carrega após login)
@@ -1640,7 +1707,7 @@
                 participantesList.innerHTML = sorteioLeads.map(lead => `
                     <div class="lead-item">
                         <span class="lead-name">${lead.nome}</span>
-                        <span class="lead-info">${lead.email} • ${formatDate(lead.data_criacao)}</span>
+                        <span class="lead-info">${lead.email} • ${formatDate(lead.data_atualizacao || lead.data_criacao)}</span>
                     </div>
                 `).join('');
             }

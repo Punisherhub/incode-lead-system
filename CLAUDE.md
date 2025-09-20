@@ -37,8 +37,12 @@ cp backend/database/leads.db backend/database/leads_backup_$(date +%Y%m%d_%H%M%S
 ### Database Management
 ```bash
 node backend/database/migrate.js              # Run database migrations
+node backend/database/migration-participacoes.js  # Create participations table for multiple events
+node backend/database/fix-timezone-postgres.js    # Fix timezone defaults in PostgreSQL (production)
 node backend/database/update-schema.js        # Update SQLite schema with new workshop fields
 node backend/database/migrate-postgres.js     # Update PostgreSQL schema with new workshop fields (production)
+npm run migrate:postgres                       # Run PostgreSQL migrations (production)
+npm run init:postgres                          # Initialize PostgreSQL database (production)
 ```
 
 ### Development & Debug
@@ -57,8 +61,13 @@ NODE_ENV=development npm start    # Force development mode
   - Development: SQLite via `database/init.js`
   - Production: PostgreSQL via `database/postgres.js` (if DATABASE_URL exists)
   - Migration scripts: `database/migrate.js`
-- **Models**: `models/Lead.js` - Lead data model with validation
-- **Routes**: `routes/leads.js` - API endpoints for lead management
+- **Models**:
+  - `models/Lead.js` - Lead data model with validation
+  - `models/Participacao.js` - Participation model for multiple events system
+- **Routes**:
+  - `routes/leads.js` - API endpoints for lead management
+  - `routes/participacoes.js` - API endpoints for event participation management
+  - `routes/export.js` - Data export endpoints (CSV/JSON for leads and events)
 - **Middleware**: `middleware/` - Custom middleware components
 - **Data**: `data/` - Application data storage
 - **Logs**: `logs/` - Application logging directory
@@ -106,6 +115,7 @@ Dynamic mode switching between General Lead Capture and Workshop/Event Registrat
 
 ### Key Features
 - Interactive 3D background with floating Python code animations
+- Matrix Digital Rain effects (optimized for performance, some disabled in production)
 - Responsive lead capture form with client-side validation
 - Dual database support (SQLite dev, PostgreSQL prod)
 - n8n webhook integration for automated marketing sequences
@@ -122,7 +132,17 @@ Dynamic mode switching between General Lead Capture and Workshop/Event Registrat
   - `POST /api/config` - Update site mode and workshop settings
   - `PUT /api/config/mode` - Quick mode switch (general/workshop)
   - `GET /api/config/status` - Public site mode status
-- Lead management endpoints (check `routes/leads.js` for complete list)
+- **Lead Management**: Check `routes/leads.js` for complete list
+- **Event Participation System:**
+  - `GET /api/participacoes` - List events or participants by event
+  - `GET /api/participacoes/lead/:leadId` - Get participations for specific lead
+  - `GET /api/participacoes/stats` - Event participation statistics
+  - `GET /api/participacoes/verificar/:leadId/:evento` - Check if lead participated in event
+  - `DELETE /api/participacoes/:id` - Remove participation
+- **Data Export:**
+  - `GET /api/export/leads?formato=csv|json` - Export all leads
+  - `GET /api/export/evento/:evento?formato=csv|json` - Export event participants
+  - `GET /api/export/completo?formato=csv|json` - Export complete report
 
 ### Environment Configuration
 Required environment variables (copy `.env.example` to `.env`):
@@ -138,7 +158,7 @@ DATABASE_URL=                              # PostgreSQL URL (production)
 
 # Security
 CORS_ORIGIN=http://localhost:3000,https://yourdomain.com
-API_RATE_LIMIT=100          # Requests per 15 minutes
+API_RATE_LIMIT=1000         # Requests per 15 minutes (default: 1000, example uses 100)
 
 # Integration
 N8N_WEBHOOK_URL=            # n8n automation webhook URL
@@ -161,7 +181,8 @@ N8N_WEBHOOK_URL=            # n8n automation webhook URL
 - **Setup**: Automated via `setup.js` with dependency checks and environment setup
 
 ### Database Schema
-Lead table structure:
+
+**Leads Table:**
 - `nome` (VARCHAR) - Full name
 - `email` (VARCHAR, UNIQUE) - Email address
 - `telefone` (VARCHAR) - Phone number
@@ -170,15 +191,26 @@ Lead table structure:
 - `ip_address` (VARCHAR) - Client IP for analytics
 - `user_agent` (TEXT) - Browser info for analytics
 - `created_at` (DATETIME) - Timestamp
-- **New Workshop Fields:**
+- **Workshop Fields:**
   - `tipo_lead` (VARCHAR) - Lead type: 'geral' or 'workshop'
   - `evento` (VARCHAR) - Event/workshop name
   - `dia_evento` (VARCHAR) - Preferred event day (17/18)
 
+**Participacoes Table (Multiple Events System):**
+- `id` (INTEGER, PRIMARY KEY) - Participation ID
+- `lead_id` (INTEGER, FOREIGN KEY) - Reference to leads table
+- `evento_nome` (TEXT) - Event name
+- `evento_data` (TEXT) - Event date
+- `tipo_evento` (TEXT) - Event type (default: 'sorteio')
+- `data_participacao` (DATETIME) - Participation timestamp
+- `ip_address` (TEXT) - Client IP for analytics
+- `user_agent` (TEXT) - Browser info for analytics
+- `metadata` (TEXT) - Additional JSON metadata
+
 ### Security Implementation
 - Helmet.js for security headers (CSP disabled for external CDN resources)
 - CORS with configurable origins
-- Express rate limiting (100 requests per 15 minutes per IP)
+- Express rate limiting (1000 requests per 15 minutes per IP, configurable via API_RATE_LIMIT)
 - Input validation and sanitization in Lead model
 - SQL injection protection via prepared statements
 - Environment variable validation
@@ -219,9 +251,15 @@ incode-lead-system/
 │   ├── database/
 │   │   ├── init.js           # SQLite initialization
 │   │   ├── postgres.js       # PostgreSQL setup
-│   │   └── migrate.js        # Database migrations
-│   ├── models/Lead.js        # Lead data model
-│   ├── routes/leads.js       # API routes
+│   │   ├── migrate.js        # Database migrations
+│   │   └── migration-participacoes.js  # Participation table migration
+│   ├── models/
+│   │   ├── Lead.js           # Lead data model
+│   │   └── Participacao.js   # Participation data model
+│   ├── routes/
+│   │   ├── leads.js          # Lead management API
+│   │   ├── participacoes.js  # Event participation API
+│   │   └── export.js         # Data export API (CSV/JSON)
 │   ├── middleware/           # Custom middleware components
 │   ├── data/                 # Application data storage
 │   └── logs/                 # Application logging directory
