@@ -84,23 +84,23 @@ class SiteModeManager {
         if (formTitle) {
             formTitle.textContent = 'ACESSE O FUTURO';
         }
-        
+
         // Subtítulo do formulário
         const formSubtitle = document.querySelector('.form-subtitle');
         if (formSubtitle) {
-            formSubtitle.textContent = 'Comece sua jornada na programação Python';
+            formSubtitle.textContent = 'Comece sua jornada com a Incode!';
         }
-        
+
         // Botão de submit
         const submitBtnText = document.querySelector('.submit-btn .btn-text');
         if (submitBtnText) {
-            submitBtnText.textContent = 'INICIAR JORNADA';
+            submitBtnText.textContent = 'INSCREVA-SE';
         }
         
         // Descrição hero
         const heroDescription = document.querySelector('.hero-description');
         if (heroDescription) {
-            heroDescription.textContent = 'Domine Python para moldar seu futuro e se destacar em qualquer área!';
+            heroDescription.textContent = 'Domine Python para moldar seu futuro e se destacar em qualquer área. Nós da Incode Academy acreditamos que dominar a tecnologia é algo fundamental para o FUTURO.';
         }
     }
     
@@ -282,13 +282,61 @@ class SiteModeManager {
     }
     
     // Atualizar modal de sucesso
-    updateSuccessModal() {
+    updateSuccessModal(responseData = null) {
+        console.log('🎭 updateSuccessModal chamado com:', responseData);
+
         const modal = document.getElementById('success-modal');
-        if (!modal) return;
-        
+        if (!modal) {
+            console.error('❌ Modal não encontrado no DOM!');
+            return;
+        }
+
         const modalContent = modal.querySelector('.modal-content');
-        if (!modalContent) return;
-        
+        if (!modalContent) {
+            console.error('❌ Modal content não encontrado no DOM!');
+            return;
+        }
+
+        // PRIMEIRO: Sempre limpar event listeners antigos do modal inteiro
+        const cleanModal = this.cleanModalEventListeners(modal);
+        const cleanModalContent = cleanModal.querySelector('.modal-content');
+
+        // Se temos dados da resposta, personalizar a mensagem
+        if (responseData) {
+            console.log('🎭 Dados da resposta para modal:', responseData);
+
+            // Lead já existe (mesma pessoa se cadastrando novamente)
+            if (responseData.existingParticipation ||
+                (!responseData.isNewLead && !responseData.isNewParticipation)) {
+
+                console.log('🔄 Personalizando modal para lead existente');
+                cleanModalContent.innerHTML = `
+                    <div class="success-animation">
+                        <div class="checkmark">
+                            <svg viewBox="0 0 52 52">
+                                <circle cx="26" cy="26" r="25" fill="none"/>
+                                <path fill="none" d="m14.1,27.2l7.1,7.2 16.7-16.8"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h3>Bem-vindo de volta! 🎯</h3>
+                    <p><strong>${responseData.message}</strong></p>
+                    <p>Seus dados já estão em nosso sistema. Nossa equipe entrará em contato em breve!</p>
+                    <button id="close-modal" class="modal-btn">Continuar</button>
+                `;
+
+                console.log('✅ Modal personalizado para lead existente!');
+
+                // Re-adicionar event listener limpo
+                this.setupModalEventListeners(cleanModal);
+                return;
+            } else {
+                console.log('ℹ️ Lead novo ou nova participação - usando modal padrão');
+            }
+        } else {
+            console.log('ℹ️ Sem responseData - usando modal padrão');
+        }
+
         if (this.currentMode === 'workshop') {
             modalContent.innerHTML = `
                 <div class="success-animation">
@@ -362,18 +410,54 @@ class SiteModeManager {
         return leadData;
     }
     
+    // Limpar event listeners do modal
+    cleanModalEventListeners(modal) {
+        console.log('🧹 Limpando event listeners do modal...');
+
+        // Clonar modal inteiro para remover todos os listeners
+        const newModal = modal.cloneNode(true);
+        modal.parentNode.replaceChild(newModal, modal);
+
+        console.log('✅ Event listeners do modal limpos!');
+        return newModal;
+    }
+
+    // Configurar event listeners limpos do modal
+    setupModalEventListeners(modal) {
+        console.log('🔧 Configurando event listeners do modal...');
+
+        // Event listener para o botão close
+        const closeModalBtn = modal.querySelector('#close-modal');
+        if (closeModalBtn && window.incodeAnimations) {
+            closeModalBtn.addEventListener('click', () => {
+                console.log('🔄 Fechando modal via botão...');
+                window.incodeAnimations.hideSuccessModal();
+            });
+        }
+
+        // Event listener para fechar clicando fora
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal && window.incodeAnimations) {
+                console.log('🔄 Fechando modal via clique fora...');
+                window.incodeAnimations.hideSuccessModal();
+            }
+        });
+
+        console.log('✅ Event listeners do modal configurados!');
+    }
+
     // Recarregar configuração (para uso do admin)
     async reload() {
         console.log('🔄 Recarregando configuração do site...');
         await this.loadCurrentMode();
         this.applyMode();
         this.updateSuccessModal();
-        
+
         // Disparar evento personalizado
         document.dispatchEvent(new CustomEvent('siteModeChanged', {
-            detail: { 
-                mode: this.currentMode, 
-                config: this.workshopConfig 
+            detail: {
+                mode: this.currentMode,
+                config: this.workshopConfig
             }
         }));
     }
@@ -399,9 +483,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // Event listener para mudanças de modo
 document.addEventListener('siteModeChanged', (event) => {
     console.log('📢 Modo do site alterado:', event.detail);
-    
+
     // Reativar animações se necessário
     if (window.incodeAnimations) {
         window.incodeAnimations.init();
     }
 });
+
+// Event listener para captura de leads - removido para evitar duplicação
+// A personalização do modal agora acontece diretamente no form-handler ANTES de mostrar

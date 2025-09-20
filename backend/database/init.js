@@ -137,7 +137,14 @@ const updateSchema = () => {
             const requiredColumns = [
                 { name: 'enviado_n8n', type: 'BOOLEAN DEFAULT FALSE' },
                 { name: 'tentativas_n8n', type: 'INTEGER DEFAULT 0' },
-                { name: 'ultimo_erro_n8n', type: 'TEXT' }
+                { name: 'ultimo_erro_n8n', type: 'TEXT' },
+                { name: 'ultimo_envio_data', type: 'DATETIME' },
+                { name: 'ultimo_envio_hora', type: 'TEXT' },
+                { name: 'ultimo_envio_dia', type: 'TEXT' },
+                { name: 'total_envios', type: 'INTEGER DEFAULT 0' },
+                { name: 'tipo_lead', type: 'TEXT DEFAULT "geral"' },
+                { name: 'evento', type: 'TEXT' },
+                { name: 'dia_evento', type: 'TEXT' }
             ];
             
             let addColumnPromises = [];

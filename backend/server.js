@@ -8,6 +8,8 @@ require('dotenv').config();
 
 const leadRoutes = require('./routes/leads');
 const configRoutes = require('./routes/config');
+const participacoesRoutes = require('./routes/participacoes');
+const exportRoutes = require('./routes/export');
 
 // Usar PostgreSQL em produção, SQLite em desenvolvimento
 let dbModule;
@@ -85,6 +87,8 @@ app.get('/api/health', (req, res) => {
 // API Routes
 app.use('/api/leads', leadRoutes);
 app.use('/api/config', configRoutes);
+app.use('/api/participacoes', participacoesRoutes);
+app.use('/api/export', exportRoutes);
 
 // Webhook endpoint para n8n (será configurado depois)
 app.post('/api/webhook/n8n', (req, res) => {

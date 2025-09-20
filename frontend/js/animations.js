@@ -434,50 +434,24 @@ if __name__ == '__main__':
     
     showSuccessModal() {
         const modal = document.getElementById('success-modal');
-        
-        // Mostrar modal
+
+        // Método simplificado - apenas mostrar modal
+        // As animações são agora controladas pelo form-handler para evitar conflitos
         modal.style.display = 'block';
-        
-        // Animar entrada
-        gsap.from('.modal-content', {
-            scale: 0,
-            rotation: 360,
-            opacity: 0,
-            duration: 1,
-            ease: "back.out(1.7)"
-        });
-        
-        // Animar checkmark
-        gsap.from('.checkmark', {
-            scale: 0,
-            duration: 0.8,
-            delay: 0.5,
-            ease: "back.out(1.7)"
-        });
-        
-        // Animar texto
-        gsap.from('.modal-content h3, .modal-content p', {
-            y: 30,
-            opacity: 0,
-            duration: 0.8,
-            stagger: 0.2,
-            delay: 0.8,
-            ease: "power2.out"
-        });
+        modal.style.opacity = '1';
+
+        console.log('📌 animations.js: showSuccessModal chamado (método legado)');
     }
     
     hideSuccessModal() {
         const modal = document.getElementById('success-modal');
-        
-        gsap.to('.modal-content', {
-            scale: 0,
-            opacity: 0,
-            duration: 0.5,
-            ease: "power2.in",
-            onComplete: () => {
-                modal.style.display = 'none';
-            }
-        });
+
+        // Método simplificado - apenas esconder modal
+        // As animações são agora controladas pelo form-handler para evitar conflitos
+        modal.style.display = 'none';
+        modal.style.opacity = '0';
+
+        console.log('📌 animations.js: hideSuccessModal chamado (método legado)');
     }
     
     // Limpeza
