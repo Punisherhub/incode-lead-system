@@ -3,6 +3,20 @@ const Lead = require('../models/Lead');
 // Não importar getDatabaseStats aqui, será usado condicionalmente
 const router = express.Router();
 
+// Helper para obter timestamp do Brasil
+const getBrazilTimestamp = () => {
+    return new Date().toLocaleString('pt-BR', {
+        timeZone: 'America/Sao_Paulo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false
+    });
+};
+
 // Middleware para capturar IP e User-Agent
 const captureClientInfo = (req, res, next) => {
     req.clientInfo = {
@@ -15,7 +29,7 @@ const captureClientInfo = (req, res, next) => {
 // Aplicar middleware a todas as rotas
 router.use(captureClientInfo);
 
-// POST /api/leads - Criar novo lead
+// POST /api/leads - Criar novo lead (novo sistema com participações)
 router.post('/', async (req, res) => {
     try {
         console.log('📝 Novo lead recebido:', {
@@ -23,7 +37,7 @@ router.post('/', async (req, res) => {
             email: req.body.email,
             ip: req.clientInfo.ip_address
         });
-        
+
         // Criar instância do lead com dados do request
         const leadData = {
             ...req.body,
@@ -31,11 +45,26 @@ router.post('/', async (req, res) => {
             user_agent: req.clientInfo.user_agent,
             origem: 'website'
         };
-        
+
         const lead = new Lead(leadData);
-        
-        // Salvar lead
-        const result = await lead.save();
+
+        // Preparar informações do evento se fornecidas
+        let eventoInfo = null;
+        if (req.body.evento_nome) {
+            eventoInfo = {
+                evento_nome: req.body.evento_nome,
+                evento_data: req.body.evento_data,
+                tipo_evento: req.body.tipo_evento || 'sorteio',
+                metadata: {
+                    fonte: 'website',
+                    ip: req.clientInfo.ip_address,
+                    timestamp: getBrazilTimestamp()
+                }
+            };
+        }
+
+        // Salvar lead (com novo sistema de participações)
+        const result = await lead.save(eventoInfo);
         
         // Tentar enviar para n8n (não bloquear se falhar)
         try {
@@ -45,15 +74,21 @@ router.post('/', async (req, res) => {
             // Não falhar a requisição por causa do n8n
         }
         
-        res.status(201).json({
+        // Determinar status code baseado no resultado
+        const statusCode = result.existingParticipation ? 200 : 201;
+
+        res.status(statusCode).json({
             success: true,
-            message: 'Lead cadastrado com sucesso! 🎉',
+            message: result.message,
+            isNewLead: result.isNewLead || false,
+            isNewParticipation: result.isNewParticipation || false,
+            existingParticipation: result.existingParticipation || false,
             data: {
                 id: result.id,
                 nome: req.body.nome,
                 email: req.body.email
             },
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
@@ -75,7 +110,7 @@ router.post('/', async (req, res) => {
             success: false,
             error: errorMessage,
             code: 'LEAD_CREATION_ERROR',
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
     }
 });
@@ -101,7 +136,7 @@ router.get('/', async (req, res) => {
             data: result.leads,
             pagination: result.pagination,
             filters: filters,
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
@@ -122,7 +157,7 @@ router.get('/stats', async (req, res) => {
         res.json({
             success: true,
             data: leadStats,
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
@@ -151,31 +186,36 @@ router.get('/sorteio', async (req, res) => {
         switch (periodo) {
             case 'hoje':
                 if (isProduction) {
-                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE`);
+                    // PostgreSQL: Comparar a data da criação (em timezone brasileiro) com a data atual
+                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = DATE(NOW() AT TIME ZONE 'America/Sao_Paulo')`);
                 } else {
-                    whereConditions.push(`DATE(data_criacao) = DATE('now')`);
+                    // SQLite: Usar timezone brasileiro para comparação
+                    whereConditions.push(`DATE(data_criacao) = DATE('now', 'localtime')`);
                 }
                 break;
             case 'ontem':
                 if (isProduction) {
-                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = CURRENT_DATE - INTERVAL '1 day'`);
+                    whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') = DATE(NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '1 day'`);
                 } else {
-                    whereConditions.push(`DATE(data_criacao) = DATE('now', '-1 day')`);
+                    whereConditions.push(`DATE(data_criacao) = DATE('now', 'localtime', '-1 day')`);
                 }
                 break;
             case 'semana':
                 if (isProduction) {
-                    whereConditions.push(`data_criacao >= CURRENT_DATE - INTERVAL '7 days'`);
+                    // PostgreSQL: Últimos 7 dias considerando timezone brasileiro
+                    whereConditions.push(`data_criacao AT TIME ZONE 'America/Sao_Paulo' >= (NOW() AT TIME ZONE 'America/Sao_Paulo') - INTERVAL '7 days'`);
                 } else {
-                    whereConditions.push(`data_criacao >= datetime('now', '-7 days')`);
+                    // SQLite: Últimos 7 dias em timezone local
+                    whereConditions.push(`datetime(data_criacao) >= datetime('now', 'localtime', '-7 days')`);
                 }
                 break;
             case 'mes':
                 if (isProduction) {
-                    whereConditions.push(`EXTRACT(YEAR FROM data_criacao AT TIME ZONE 'America/Sao_Paulo') = EXTRACT(YEAR FROM CURRENT_DATE)`);
-                    whereConditions.push(`EXTRACT(MONTH FROM data_criacao AT TIME ZONE 'America/Sao_Paulo') = EXTRACT(MONTH FROM CURRENT_DATE)`);
+                    whereConditions.push(`EXTRACT(YEAR FROM data_criacao AT TIME ZONE 'America/Sao_Paulo') = EXTRACT(YEAR FROM NOW() AT TIME ZONE 'America/Sao_Paulo')`);
+                    whereConditions.push(`EXTRACT(MONTH FROM data_criacao AT TIME ZONE 'America/Sao_Paulo') = EXTRACT(MONTH FROM NOW() AT TIME ZONE 'America/Sao_Paulo')`);
                 } else {
-                    whereConditions.push(`strftime('%Y-%m', data_criacao) = strftime('%Y-%m', 'now')`);
+                    // SQLite: Usar timezone local para comparação do mês
+                    whereConditions.push(`strftime('%Y-%m', data_criacao) = strftime('%Y-%m', 'now', 'localtime')`);
                 }
                 break;
             case 'todos':
@@ -223,7 +263,7 @@ router.get('/sorteio', async (req, res) => {
             data: leads,
             filtros: { periodo, tipo },
             total: leads.length,
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
@@ -263,7 +303,7 @@ router.get('/:id', async (req, res) => {
         res.json({
             success: true,
             data: lead,
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
@@ -304,7 +344,7 @@ router.put('/:id/status', async (req, res) => {
         res.json({
             success: true,
             message: `Status atualizado para: ${status}`,
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
@@ -352,7 +392,7 @@ router.post('/resend-n8n', async (req, res) => {
                 success: successCount,
                 errors: errorCount
             },
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
@@ -433,7 +473,7 @@ async function sendToN8N(leadId, leadData) {
             idade: leadData.idade,
             curso: leadData.curso,
             origem: leadData.origem || 'website',
-            timestamp: new Date().toISOString(),
+            timestamp: getBrazilTimestamp(),
             empresa: 'Incode Academy'
         };
         
@@ -502,7 +542,7 @@ router.delete('/:id', async (req, res) => {
                 nome: lead.nome,
                 email: lead.email
             },
-            timestamp: new Date().toISOString()
+            timestamp: getBrazilTimestamp()
         });
         
     } catch (error) {
