@@ -948,9 +948,9 @@
                     };
 
                     const modeNames = {
-                        'high': 'ULTRA DRAMA',
-                        'medium': 'DRAMA MODERADO',
-                        'low': 'DRAMA OTIMIZADO'
+                        'high': 'MEGA SORTEIO',
+                        'medium': 'SORTEIO',
+                        'low': 'SORTEIO'
                     };
 
                     modeIcon = modeIcons[capability.level];
@@ -1591,21 +1591,38 @@
             startTickSounds(settings) {
                 const duration = settings.duration;
                 const fases = settings.audioFases;
-                const baseInterval = settings.tickInterval;
+                const itemCount = settings.itemCount;
+                const rotations = settings.rotations;
+
+                // CALCULAR INTERVALO BASEADO NA VELOCIDADE VISUAL REAL
+                // Sincronizar com a velocidade de movimento visual dos itens
+                const itemWidth = 120; // largura de cada item no carrossel
+                const totalPixels = itemCount * itemWidth * rotations; // distância total em pixels
+                const pixelsPerSecond = totalPixels / (duration / 1000); // velocidade em pixels/segundo
+
+                // Calcular quantos itens passam por segundo baseado na velocidade visual
+                const itemsPerSecond = pixelsPerSecond / itemWidth;
+                const ticksPerSecond = Math.min(itemsPerSecond * 0.8, 50); // Máximo 50 ticks/segundo
+                const baseInterval = Math.max(20, 1000 / ticksPerSecond); // Converter para intervalo em ms
+
+                console.log(`🎵 Áudio sincronizado: ${itemCount} itens × ${rotations} voltas = ${totalPixels}px total`);
+                console.log(`🎵 Velocidade: ${Math.round(pixelsPerSecond)}px/s = ${Math.round(itemsPerSecond)} itens/s`);
+                console.log(`🎵 Intervalo: ${Math.round(baseInterval)}ms (${Math.round(ticksPerSecond)} ticks/s)`);
 
                 this.tickInterval = setInterval(() => {
                     // Frequência variável para criar sensação de velocidade
                     const randomFreq = 800 + Math.random() * 600;
                     this.playTickSound(randomFreq, 0.03);
-                }, baseInterval); // Som adaptativo baseado na capacidade
+                }, baseInterval);
 
-                // SISTEMA ADAPTATIVO DE FASES DE ÁUDIO COM DESACELERAÇÃO DRAMÁTICA
+                // SISTEMA ADAPTATIVO DE FASES DE ÁUDIO COM DESACELERAÇÃO BASEADA NO MOVIMENTO
                 for (let fase = 2; fase <= fases; fase++) {
                     const timing = (duration / fases) * (fase - 1);
 
-                    // Desaceleração progressiva mais dramática
-                    const multiplier = Math.pow(1.8, fase - 1); // Multiplicador exponencial
-                    const interval = baseInterval + (fase - 1) * 40 + (multiplier * 20);
+                    // Desaceleração progressiva baseada na velocidade visual
+                    const speedFactor = Math.min(2.0, pixelsPerSecond / 1000); // Fator baseado na velocidade
+                    const multiplier = Math.pow(1.5 + (speedFactor * 0.3), fase - 1);
+                    const interval = baseInterval + (fase - 1) * (30 + speedFactor * 10) + (multiplier * 15);
                     const freqBase = 800 - (fase - 1) * 80;
                     const freqVariacao = 600 - (fase - 1) * 60;
 
@@ -1617,32 +1634,35 @@
                         }, interval);
 
                         // Log da mudança de fase para debug
-                        console.log(`🎵 Fase ${fase}/${fases} - Intervalo: ${interval}ms, Freq: ${freqBase}±${freqVariacao}`);
+                        console.log(`🎵 Fase ${fase}/${fases} - Intervalo: ${Math.round(interval)}ms, Movimento: ${totalMovement}, Freq: ${freqBase}±${freqVariacao}`);
                     }, timing);
                 }
 
-                // FASE FINAL ULTRA DRAMÁTICA (últimos 2 segundos) - SINCRONIZADA
-                if (settings.isMegaEvent) {
-                    setTimeout(() => {
-                        clearInterval(this.tickInterval);
-                        let finalTicks = 0;
-                        const maxFinalTicks = 6; // Reduzido para sincronizar melhor
+                // FASE FINAL ADAPTATIVA BASEADA NO NÚMERO DE ITENS
+                const finalDuration = Math.min(2000, duration * 0.2); // 20% do tempo final ou 2s
+                const finalTicks = Math.max(4, Math.min(10, itemCount / 10)); // Entre 4-10 ticks baseado nos itens
 
-                        const finalTickInterval = setInterval(() => {
-                            const dramaticFreq = 400 + Math.random() * 200;
-                            this.playTickSound(dramaticFreq, 0.06);
-                            finalTicks++;
+                setTimeout(() => {
+                    clearInterval(this.tickInterval);
+                    let currentTick = 0;
 
-                            if (finalTicks >= maxFinalTicks) {
-                                clearInterval(finalTickInterval);
-                                // Som final ÉPICO sincronizado com a parada visual
-                                setTimeout(() => {
-                                    this.playTickSound(200, 0.15, 'sawtooth');
-                                }, 200); // Sincronizado com o fim da animação
-                            }
-                        }, 300); // Tick final mais espaçado para drama
-                    }, duration - 2000);
-                }
+                    const finalTickInterval = setInterval(() => {
+                        const progress = currentTick / finalTicks;
+                        const dramaticFreq = 400 + Math.random() * 200 - (progress * 100); // Frequência decrescente
+                        this.playTickSound(dramaticFreq, 0.06 + (progress * 0.04));
+                        currentTick++;
+
+                        if (currentTick >= finalTicks) {
+                            clearInterval(finalTickInterval);
+                            // Som final ÉPICO sincronizado com a parada visual
+                            setTimeout(() => {
+                                this.playTickSound(200, 0.15, 'sawtooth');
+                            }, 100);
+                        }
+                    }, finalDuration / finalTicks); // Distribuir ticks uniformemente
+
+                    console.log(`🎵 Fase final: ${finalTicks} ticks em ${finalDuration}ms (${Math.round(finalDuration/finalTicks)}ms cada)`);
+                }, duration - finalDuration);
             }
             
             stopTickSounds() {

@@ -83,6 +83,9 @@ NODE_ENV=development npm start    # Force development mode
 ### Frontend Structure (`frontend/`)
 - **Entry Point**: `index.html` - SPA with Three.js 3D scene
 - **Admin Panel**: `admin.html` - Basic admin interface for viewing leads
+- **Event Pages**:
+  - `sorteio.html` - Interactive lottery/drawing system with audio-visual synchronization
+  - `qrcodes.html` - QR code generation page for events and social media
 - **Assets**: `assets/images/logo-incode.png` - Brand assets
 - **Main App**: `js/app.js` - Application orchestrator
 - **Core Components**:
