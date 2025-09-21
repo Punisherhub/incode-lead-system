@@ -64,8 +64,15 @@ app.use('/api/', limiter);
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Servir arquivos estáticos
-app.use(express.static(path.join(__dirname, '../frontend')));
+// Servir arquivos estáticos com headers para evitar cache
+app.use(express.static(path.join(__dirname, '../frontend'), {
+    setHeaders: (res, path) => {
+        // Desabilitar cache para todos os arquivos estáticos
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+    }
+}));
 
 // Logging middleware
 app.use((req, res, next) => {
