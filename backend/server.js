@@ -84,6 +84,41 @@ app.get('/api/health', (req, res) => {
     });
 });
 
+// Endpoint para executar migração PostgreSQL (apenas em produção)
+app.get('/api/migrate-schema', async (req, res) => {
+    if (process.env.NODE_ENV !== 'production' || !process.env.DATABASE_URL) {
+        return res.status(400).json({
+            error: 'Migration endpoint only available in production with PostgreSQL',
+            timestamp: new Date().toISOString()
+        });
+    }
+
+    try {
+        console.log('🔄 Executando migração de schema via endpoint...');
+        const { fixPostgresSchema } = require('./database/fix-postgres-schema');
+        await fixPostgresSchema();
+
+        res.json({
+            success: true,
+            message: 'Schema PostgreSQL corrigido com sucesso! 🎉',
+            timestamp: new Date().toISOString(),
+            actions: [
+                'Colunas total_envios, ultimo_envio_data, ultimo_envio_hora, ultimo_envio_dia adicionadas',
+                'Colunas tipo_lead, evento, dia_evento verificadas',
+                'Tabela participacoes criada se necessário',
+                'Valores padrão atualizados'
+            ]
+        });
+    } catch (error) {
+        console.error('❌ Erro na migração via endpoint:', error);
+        res.status(500).json({
+            error: 'Erro ao executar migração',
+            message: error.message,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
 // API Routes
 app.use('/api/leads', leadRoutes);
 app.use('/api/config', configRoutes);
