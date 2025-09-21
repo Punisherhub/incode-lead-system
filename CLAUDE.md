@@ -39,8 +39,11 @@ cp backend/database/leads.db backend/database/leads_backup_$(date +%Y%m%d_%H%M%S
 node backend/database/migrate.js              # Run database migrations
 node backend/database/migration-participacoes.js  # Create participations table for multiple events
 node backend/database/fix-timezone-postgres.js    # Fix timezone defaults in PostgreSQL (production)
+node backend/database/fix-postgres-schema.js  # Fix PostgreSQL schema issues
 node backend/database/update-schema.js        # Update SQLite schema with new workshop fields
 node backend/database/migrate-postgres.js     # Update PostgreSQL schema with new workshop fields (production)
+node backend/database/init-postgres.js        # Initialize PostgreSQL database manually
+node backend/database/init-postgres-auto.js   # Auto-initialize PostgreSQL database
 npm run migrate:postgres                       # Run PostgreSQL migrations (production)
 npm run init:postgres                          # Initialize PostgreSQL database (production)
 ```

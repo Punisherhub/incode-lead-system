@@ -144,6 +144,10 @@ app.get('/admin/sorteio', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/sorteio.html'));
 });
 
+app.get('/qrcodes', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/qrcodes.html'));
+});
+
 app.get('/sorteio', (req, res) => {
     res.sendFile(path.join(__dirname, '../frontend/sorteio.html'));
 });

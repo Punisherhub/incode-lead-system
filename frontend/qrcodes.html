@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Codes - Incode Academy</title>
+    <link rel="icon" type="image/x-icon" href="assets/images/logo-incode.png">
+
+    <!-- QRCode.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 36px;
+            font-weight: bold;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .qr-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .qr-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            border-color: #667eea;
+        }
+
+        .qr-card h3 {
+            color: #333;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .icon {
+            font-size: 1.8rem;
+        }
+
+        .website-icon {
+            color: #667eea;
+        }
+
+        .instagram-icon {
+            background: linear-gradient(45deg, #f09433 0%,#e6683c 25%,#dc2743 50%,#cc2366 75%,#bc1888 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .qr-code {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            display: inline-block;
+        }
+
+        .url-display {
+            background: #f1f3f4;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #555;
+            word-break: break-all;
+            border-left: 4px solid #667eea;
+        }
+
+        .download-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 1px solid #eee;
+            color: #666;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .qr-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .qr-card {
+                padding: 25px 15px;
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #e74c3c;
+            padding: 20px;
+            background: #ffeaea;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">IC</div>
+            <h1>QR Codes Incode Academy</h1>
+            <p class="subtitle">Escaneie os códigos abaixo para acessar nossos conteúdos</p>
+        </div>
+
+        <div class="qr-grid">
+            <!-- QR Code do Site -->
+            <div class="qr-card">
+                <h3>
+                    <span class="icon website-icon">🌐</span>
+                    Site de Captação
+                </h3>
+                <div id="qr-website" class="qr-code">
+                    <div class="loading"></div>
+                </div>
+                <div class="url-display" id="website-url">Carregando URL...</div>
+                <button class="download-btn" onclick="downloadQR('qr-website', 'QR-Site-Incode')">
+                    📥 Baixar QR Code
+                </button>
+            </div>
+
+            <!-- QR Code do Instagram -->
+            <div class="qr-card">
+                <h3>
+                    <span class="icon instagram-icon">📷</span>
+                    Instagram Incode
+                </h3>
+                <div id="qr-instagram" class="qr-code">
+                    <div class="loading"></div>
+                </div>
+                <div class="url-display">@incodeacademy</div>
+                <button class="download-btn" onclick="downloadQR('qr-instagram', 'QR-Instagram-Incode')">
+                    📥 Baixar QR Code
+                </button>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🚀 <strong>Incode Academy</strong> - Transformando vidas através da programação</p>
+            <p>QR Codes gerados automaticamente • Válidos permanentemente</p>
+        </div>
+    </div>
+
+    <script>
+        // URLs para os QR codes
+        const WEBSITE_URL = window.location.origin; // URL do site atual
+        const INSTAGRAM_URL = 'https://instagram.com/incodeacademy';
+
+        // Configurações do QR Code
+        const QR_OPTIONS = {
+            width: 200,
+            height: 200,
+            margin: 2,
+            color: {
+                dark: '#333333',
+                light: '#FFFFFF'
+            },
+            errorCorrectionLevel: 'H'
+        };
+
+        // Função para gerar QR Code
+        async function generateQRCode(elementId, url, displayUrl = null) {
+            try {
+                const canvas = document.createElement('canvas');
+                await QRCode.toCanvas(canvas, url, QR_OPTIONS);
+
+                const container = document.getElementById(elementId);
+                container.innerHTML = '';
+                container.appendChild(canvas);
+
+                // Atualizar display da URL se fornecido
+                if (displayUrl) {
+                    document.getElementById(displayUrl).textContent = url;
+                }
+
+                return canvas;
+            } catch (error) {
+                console.error('Erro ao gerar QR code:', error);
+                const container = document.getElementById(elementId);
+                container.innerHTML = '<div class="error">❌ Erro ao gerar QR Code</div>';
+            }
+        }
+
+        // Função para baixar QR Code
+        function downloadQR(elementId, filename) {
+            const container = document.getElementById(elementId);
+            const canvas = container.querySelector('canvas');
+
+            if (canvas) {
+                const link = document.createElement('a');
+                link.download = `${filename}.png`;
+                link.href = canvas.toDataURL('image/png', 1.0);
+                link.click();
+            } else {
+                alert('QR Code não encontrado. Aguarde a geração ser concluída.');
+            }
+        }
+
+        // Função para obter URL atual de forma dinâmica
+        function getCurrentWebsiteURL() {
+            // Se estivermos em produção, usar a URL de produção
+            if (window.location.hostname.includes('railway.app') ||
+                window.location.hostname.includes('netlify.app') ||
+                window.location.hostname.includes('incodeacademy')) {
+                return window.location.origin;
+            }
+
+            // Em desenvolvimento local, você pode definir a URL de produção aqui
+            return 'https://seu-dominio-producao.com'; // Substitua pela URL real de produção
+        }
+
+        // Gerar QR codes quando a página carregar
+        window.addEventListener('load', async () => {
+            console.log('🔄 Gerando QR codes...');
+
+            // QR Code do site
+            const websiteURL = getCurrentWebsiteURL();
+            await generateQRCode('qr-website', websiteURL, 'website-url');
+
+            // QR Code do Instagram
+            await generateQRCode('qr-instagram', INSTAGRAM_URL);
+
+            console.log('✅ QR codes gerados com sucesso!');
+        });
+
+        // Função para atualizar URL do site dinamicamente (caso necessário)
+        function updateWebsiteURL(newURL) {
+            generateQRCode('qr-website', newURL, 'website-url');
+        }
+
+        // Função para atualizar URL do Instagram (caso necessário)
+        function updateInstagramURL(newURL) {
+            generateQRCode('qr-instagram', newURL);
+            document.querySelector('#qr-instagram').parentElement.querySelector('.url-display').textContent = newURL;
+        }
+    </script>
+</body>
+</html>
