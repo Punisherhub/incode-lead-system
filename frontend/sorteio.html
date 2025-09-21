@@ -529,6 +529,7 @@
             
             <div class="filters" id="filters">
                 <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
+                    <!-- Filtros por Período Básico -->
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
                         <span style="color: #00d4ff; font-weight: 600; margin-right: 10px;">📅 Período:</span>
                         <button class="filter-btn active" data-period="todos">Todos</button>
@@ -536,7 +537,43 @@
                         <button class="filter-btn" data-period="ontem">Ontem</button>
                         <button class="filter-btn" data-period="semana">Esta Semana</button>
                         <button class="filter-btn" data-period="mes">Este Mês</button>
+                        <button class="filter-btn" data-period="custom">Personalizado</button>
                     </div>
+
+                    <!-- Filtros Avançados de Data/Hora (Oculto por padrão) -->
+                    <div id="advanced-filters" style="display: none; flex-direction: column; gap: 10px; align-items: center; background: rgba(0, 212, 255, 0.1); padding: 15px; border-radius: 10px; border: 1px solid rgba(0, 212, 255, 0.3);">
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: center;">
+                            <div>
+                                <label style="color: #00d4ff; font-size: 12px; display: block; margin-bottom: 5px;">📅 Data Inicial:</label>
+                                <input type="date" id="start-date" style="background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; color: white; padding: 8px; border-radius: 5px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="color: #00d4ff; font-size: 12px; display: block; margin-bottom: 5px;">📅 Data Final:</label>
+                                <input type="date" id="end-date" style="background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; color: white; padding: 8px; border-radius: 5px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="color: #00d4ff; font-size: 12px; display: block; margin-bottom: 5px;">🕐 Hora Inicial:</label>
+                                <input type="time" id="start-time" style="background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; color: white; padding: 8px; border-radius: 5px; font-size: 14px;">
+                            </div>
+                            <div>
+                                <label style="color: #00d4ff; font-size: 12px; display: block; margin-bottom: 5px;">🕐 Hora Final:</label>
+                                <input type="time" id="end-time" style="background: rgba(255,255,255,0.1); border: 1px solid #00d4ff; color: white; padding: 8px; border-radius: 5px; font-size: 14px;">
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 10px;">
+                            <button class="filter-btn" id="apply-custom-filter" style="background: #00d4ff; color: black;">✅ Aplicar Filtros</button>
+                            <button class="filter-btn" id="clear-custom-filter">🗑️ Limpar</button>
+                        </div>
+                    </div>
+
+                    <!-- Filtro por Critério de Data -->
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
+                        <span style="color: #00d4ff; font-weight: 600; margin-right: 10px;">🕒 Usar Data de:</span>
+                        <button class="filter-btn active" data-date-criteria="latest">Última Atividade</button>
+                        <button class="filter-btn" data-date-criteria="creation">Criação Original</button>
+                    </div>
+
+                    <!-- Filtros por Tipo -->
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
                         <span style="color: #00d4ff; font-weight: 600; margin-right: 10px;">🎯 Tipo:</span>
                         <button class="filter-btn active" data-type="all">Todos os Tipos</button>
@@ -572,10 +609,17 @@
                 this.filteredParticipants = [];
                 this.currentPeriodFilter = 'todos';
                 this.currentTypeFilter = 'all';
+                this.currentDateCriteria = 'latest'; // 'latest' or 'creation'
+                this.customFilters = {
+                    startDate: null,
+                    endDate: null,
+                    startTime: null,
+                    endTime: null
+                };
                 this.isDrawing = false;
                 this.audioContext = null;
                 this.audioEnabled = true;
-                
+
                 this.initElements();
                 this.initAudio();
                 this.bindEvents();
@@ -708,8 +752,19 @@
                             this.setPeriodFilter(e.target.dataset.period);
                         } else if (e.target.dataset.type) {
                             this.setTypeFilter(e.target.dataset.type);
+                        } else if (e.target.dataset.dateCriteria) {
+                            this.setDateCriteria(e.target.dataset.dateCriteria);
                         }
                     }
+                });
+
+                // Event listeners para filtros personalizados
+                document.getElementById('apply-custom-filter').addEventListener('click', () => {
+                    this.applyCustomFilters();
+                });
+
+                document.getElementById('clear-custom-filter').addEventListener('click', () => {
+                    this.clearCustomFilters();
                 });
             }
             
@@ -742,15 +797,70 @@
             
             setPeriodFilter(period) {
                 this.currentPeriodFilter = period;
-                
+
                 // Update active button for period
                 document.querySelectorAll('[data-period]').forEach(btn => {
                     btn.classList.toggle('active', btn.dataset.period === period);
                 });
-                
+
+                // Mostrar/ocultar filtros avançados
+                const advancedFilters = document.getElementById('advanced-filters');
+                if (period === 'custom') {
+                    advancedFilters.style.display = 'flex';
+                } else {
+                    advancedFilters.style.display = 'none';
+                    this.clearCustomFilters(false); // false = não atualizar filtros ainda
+                }
+
                 this.updateFilteredParticipants();
                 this.updateParticipantCount();
                 this.resetDraw();
+            }
+
+            setDateCriteria(criteria) {
+                this.currentDateCriteria = criteria;
+
+                // Update active button for date criteria
+                document.querySelectorAll('[data-date-criteria]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.dateCriteria === criteria);
+                });
+
+                this.updateFilteredParticipants();
+                this.updateParticipantCount();
+                this.resetDraw();
+            }
+
+            applyCustomFilters() {
+                this.customFilters.startDate = document.getElementById('start-date').value;
+                this.customFilters.endDate = document.getElementById('end-date').value;
+                this.customFilters.startTime = document.getElementById('start-time').value;
+                this.customFilters.endTime = document.getElementById('end-time').value;
+
+                this.updateFilteredParticipants();
+                this.updateParticipantCount();
+                this.resetDraw();
+
+                console.log('🎯 Filtros personalizados aplicados:', this.customFilters);
+            }
+
+            clearCustomFilters(updateFilters = true) {
+                this.customFilters = {
+                    startDate: null,
+                    endDate: null,
+                    startTime: null,
+                    endTime: null
+                };
+
+                document.getElementById('start-date').value = '';
+                document.getElementById('end-date').value = '';
+                document.getElementById('start-time').value = '';
+                document.getElementById('end-time').value = '';
+
+                if (updateFilters) {
+                    this.updateFilteredParticipants();
+                    this.updateParticipantCount();
+                    this.resetDraw();
+                }
             }
             
             setTypeFilter(type) {
@@ -768,35 +878,50 @@
             
             updateFilteredParticipants() {
                 let filtered = [...this.participants];
-                
-                // FILTRO POR PERÍODO
+
+                // FILTRO POR PERÍODO E DATA
                 if (this.currentPeriodFilter !== 'todos') {
-                    const now = new Date();
-                    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-                    
                     filtered = filtered.filter(p => {
-                        const leadDate = new Date(p.created_at || p.data_criacao || p.createdAt);
+                        // Escolher qual data usar baseado no critério selecionado
+                        let leadDate;
+                        if (this.currentDateCriteria === 'latest') {
+                            // Usar a data mais recente entre criação e última atividade
+                            const creationDate = new Date(p.created_at || p.data_criacao || p.createdAt);
+                            const updateDate = new Date(p.data_atualizacao || p.ultimo_envio_data || creationDate);
+                            leadDate = updateDate > creationDate ? updateDate : creationDate;
+                        } else {
+                            // Usar apenas data de criação original
+                            leadDate = new Date(p.created_at || p.data_criacao || p.createdAt);
+                        }
+
+                        if (this.currentPeriodFilter === 'custom') {
+                            return this.matchesCustomFilters(p, leadDate);
+                        }
+
+                        // Filtros básicos de período
+                        const now = new Date();
+                        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
                         const leadDay = new Date(leadDate.getFullYear(), leadDate.getMonth(), leadDate.getDate());
-                        
+
                         switch (this.currentPeriodFilter) {
                             case 'hoje':
                                 return leadDay.getTime() === today.getTime();
-                            
+
                             case 'ontem':
                                 const yesterday = new Date(today);
                                 yesterday.setDate(yesterday.getDate() - 1);
                                 return leadDay.getTime() === yesterday.getTime();
-                            
+
                             case 'semana':
                                 const weekAgo = new Date(today);
                                 weekAgo.setDate(weekAgo.getDate() - 7);
                                 return leadDate >= weekAgo;
-                            
+
                             case 'mes':
                                 const monthAgo = new Date(today);
                                 monthAgo.setMonth(monthAgo.getMonth() - 1);
                                 return leadDate >= monthAgo;
-                            
+
                             default:
                                 return true;
                         }
@@ -818,9 +943,46 @@
                 }
                 
                 this.filteredParticipants = filtered;
-                
-                console.log(`📊 Filtros aplicados - Período: ${this.currentPeriodFilter}, Tipo: ${this.currentTypeFilter}`);
+
+                console.log(`📊 Filtros aplicados - Período: ${this.currentPeriodFilter}, Tipo: ${this.currentTypeFilter}, Critério: ${this.currentDateCriteria}`);
                 console.log(`🎯 Participantes filtrados: ${this.filteredParticipants.length} de ${this.participants.length} total`);
+            }
+
+            matchesCustomFilters(participant, leadDate) {
+                const { startDate, endDate, startTime, endTime } = this.customFilters;
+
+                // Se nenhum filtro personalizado está definido, incluir todos
+                if (!startDate && !endDate && !startTime && !endTime) {
+                    return true;
+                }
+
+                // Filtro por data
+                if (startDate || endDate) {
+                    const leadDateOnly = leadDate.toISOString().split('T')[0]; // YYYY-MM-DD
+
+                    if (startDate && leadDateOnly < startDate) {
+                        return false;
+                    }
+
+                    if (endDate && leadDateOnly > endDate) {
+                        return false;
+                    }
+                }
+
+                // Filtro por horário (só se pelo menos uma hora estiver definida)
+                if (startTime || endTime) {
+                    const leadTimeString = leadDate.toTimeString().split(' ')[0].substring(0, 5); // HH:MM
+
+                    if (startTime && leadTimeString < startTime) {
+                        return false;
+                    }
+
+                    if (endTime && leadTimeString > endTime) {
+                        return false;
+                    }
+                }
+
+                return true;
             }
             
             updateParticipantCount() {
