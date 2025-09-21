@@ -1505,12 +1505,12 @@
                 // Definir posição inicial
                 this.caseReelEl.style.transform = `translateX(${startPosition}px)`;
                 this.caseReelEl.style.transition = 'none';
-                
-                // Iniciar sons de tick durante a animação (adaptativo)
-                this.startTickSounds(settings);
 
                 // TEMPO ADAPTATIVO BASEADO NA CAPACIDADE DO DISPOSITIVO
                 setTimeout(() => {
+                    // Iniciar sons de tick EXATAMENTE quando a animação visual começar
+                    this.startTickSounds(settings);
+
                     // Aplicar animação com configurações adaptativas
                     this.caseReelEl.style.transition = `transform ${settings.duration}ms ${settings.easing}`;
                     this.caseReelEl.style.transform = `translateX(${finalPosition}px)`;
@@ -1519,7 +1519,7 @@
                     setTimeout(() => {
                         this.stopTickSounds();
                         this.showWinner(winner);
-                    }, settings.duration + 200); // Ligeiramente após a animação terminar
+                    }, settings.duration + 100); // Sincronizado perfeitamente
                 }, 300);
             }
             
@@ -1621,12 +1621,12 @@
                     }, timing);
                 }
 
-                // FASE FINAL ULTRA DRAMÁTICA (últimos 2 segundos)
+                // FASE FINAL ULTRA DRAMÁTICA (últimos 2 segundos) - SINCRONIZADA
                 if (settings.isMegaEvent) {
                     setTimeout(() => {
                         clearInterval(this.tickInterval);
                         let finalTicks = 0;
-                        const maxFinalTicks = 8;
+                        const maxFinalTicks = 6; // Reduzido para sincronizar melhor
 
                         const finalTickInterval = setInterval(() => {
                             const dramaticFreq = 400 + Math.random() * 200;
@@ -1635,12 +1635,12 @@
 
                             if (finalTicks >= maxFinalTicks) {
                                 clearInterval(finalTickInterval);
-                                // Som final ÉPICO antes da parada
+                                // Som final ÉPICO sincronizado com a parada visual
                                 setTimeout(() => {
-                                    this.playTickSound(200, 0.1, 'sawtooth');
-                                }, 500);
+                                    this.playTickSound(200, 0.15, 'sawtooth');
+                                }, 200); // Sincronizado com o fim da animação
                             }
-                        }, 250); // Tick super lento final
+                        }, 300); // Tick final mais espaçado para drama
                     }, duration - 2000);
                 }
             }
