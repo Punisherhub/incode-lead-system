@@ -17,7 +17,7 @@ if (!fs.existsSync(dbDir)) {
 
 let db = null;
 
-// Inicializar banco de dados
+// Inicializar banco de dados com otimizações para alta carga
 const initDatabase = () => {
     return new Promise((resolve, reject) => {
         db = new sqlite3.Database(DB_PATH, (err) => {
@@ -26,16 +26,40 @@ const initDatabase = () => {
                 reject(err);
                 return;
             }
-            
+
             console.log('✅ Conectado ao banco SQLite:', DB_PATH);
-            
-            // Criar tabelas
-            createTables()
-                .then(() => {
-                    console.log('✅ Tabelas criadas/verificadas com sucesso!');
-                    resolve();
-                })
-                .catch(reject);
+
+            // Otimizações SQLite para alta carga
+            const optimizations = [
+                'PRAGMA journal_mode = WAL',           // Write-Ahead Logging para melhor concorrência
+                'PRAGMA synchronous = NORMAL',         // Balance entre segurança e performance
+                'PRAGMA cache_size = 1000000',         // Cache de 1GB (páginas de 1KB)
+                'PRAGMA temp_store = MEMORY',          // Usar RAM para temp files
+                'PRAGMA mmap_size = 268435456',        // Memory map de 256MB
+                'PRAGMA optimize'                      // Auto-otimizar o banco
+            ];
+
+            let optimizationCount = 0;
+            optimizations.forEach((pragma) => {
+                db.run(pragma, (err) => {
+                    if (err) {
+                        console.warn('⚠️ Aviso ao executar pragma:', pragma, err.message);
+                    } else {
+                        console.log('✅ Otimização aplicada:', pragma);
+                    }
+
+                    optimizationCount++;
+                    if (optimizationCount === optimizations.length) {
+                        // Criar tabelas após otimizações
+                        createTables()
+                            .then(() => {
+                                console.log('✅ Tabelas criadas/verificadas com sucesso!');
+                                resolve();
+                            })
+                            .catch(reject);
+                    }
+                });
+            });
         });
     });
 };

@@ -234,43 +234,51 @@ class IncodeFormHandler {
     
     async handleFormSubmit() {
         console.log('🚀 Processando envio do formulário...');
-        
-        // Validar formulário
-        if (!this.validateForm()) {
-            this.showFormError('Por favor, corrija os erros antes de continuar.');
-            return;
-        }
-        
-        // Mostrar loading
-        this.setSubmitLoading(true);
-        
-        try {
-            // Coletar dados do formulário (usando Site Mode Manager se disponível)
-            let leadData;
-            if (window.siteModeManager) {
-                leadData = window.siteModeManager.getFormData();
-            } else {
-                // Fallback se o mode manager não estiver disponível
-                const formData = new FormData(this.form);
-                leadData = {
-                    nome: formData.get('nome').trim(),
-                    email: formData.get('email').trim().toLowerCase(),
-                    telefone: formData.get('telefone').replace(/\D/g, ''),
-                    idade: parseInt(formData.get('idade')),
-                    tipo_lead: 'geral',
-                    curso_pretendido: 'Python'
-                };
-            }
-            
-            console.log('📤 Enviando dados:', { 
-                email: leadData.email,
-                nome: leadData.nome
-            });
-            
-            // Enviar para API
-            const response = await this.sendToAPI(leadData);
-            
-            console.log('🔍 Resposta completa da API:', response);
+
+        let retryCount = 0;
+        const maxRetries = 3;
+
+        while (retryCount < maxRetries) {
+            try {
+                // Validar formulário
+                if (!this.validateForm()) {
+                    this.showFormError('Por favor, corrija os erros antes de continuar.');
+                    return;
+                }
+
+                // Mostrar loading
+                this.setSubmitLoading(true);
+
+                // Coletar dados do formulário (usando Site Mode Manager se disponível)
+                let leadData;
+                if (window.siteModeManager) {
+                    leadData = window.siteModeManager.getFormData();
+                } else {
+                    // Fallback se o mode manager não estiver disponível
+                    const formData = new FormData(this.form);
+                    leadData = {
+                        nome: formData.get('nome').trim(),
+                        email: formData.get('email').trim().toLowerCase(),
+                        telefone: formData.get('telefone').replace(/\D/g, ''),
+                        idade: parseInt(formData.get('idade')),
+                        tipo_lead: 'geral',
+                        curso_pretendido: 'Python'
+                    };
+                }
+
+                console.log('📤 Enviando dados:', {
+                    email: leadData.email,
+                    nome: leadData.nome,
+                    tentativa: retryCount + 1
+                });
+
+                // Enviar para API com timeout
+                const response = await Promise.race([
+                    this.sendToAPI(leadData),
+                    this.timeout(10000, { success: false, message: 'Timeout' })
+                ]);
+
+                console.log('🔍 Resposta completa da API:', response);
 
             if (response.success) {
                 console.log('✅ Lead processado com sucesso!', response);
@@ -291,28 +299,66 @@ class IncodeFormHandler {
                 // Remover todos os erros
                 this.clearAllErrors();
 
+                return; // Sucesso, sair do loop
+
             } else {
                 console.error('❌ Response.success = false:', response);
                 throw new Error(response.error || response.message || 'Erro desconhecido');
             }
-            
+
         } catch (error) {
-            console.error('❌ Erro ao enviar formulário:', error);
-            
-            let errorMessage = 'Erro ao processar sua solicitação. Tente novamente.';
-            
-            if (error.message.includes('já cadastrado')) {
-                errorMessage = 'Este email já está cadastrado! Entre em contato conosco.';
-            } else if (error.message.includes('inválidos')) {
-                errorMessage = 'Dados inválidos. Verifique as informações.';
-            } else if (error.message.includes('Failed to fetch')) {
-                errorMessage = 'Erro de conexão. Verifique sua internet e tente novamente.';
+            retryCount++;
+            console.error(`❌ Tentativa ${retryCount} falhou:`, error);
+
+            if (retryCount >= maxRetries) {
+                let errorMessage = 'Sistema temporariamente indisponível. Tente novamente em alguns minutos.';
+
+                if (error.message.includes('já cadastrado')) {
+                    errorMessage = 'Este email já está cadastrado! Entre em contato conosco.';
+                } else if (error.message.includes('inválidos')) {
+                    errorMessage = 'Dados inválidos. Verifique as informações.';
+                } else if (error.message.includes('Failed to fetch') || error.message.includes('Timeout')) {
+                    errorMessage = 'Erro de conexão. Seus dados foram salvos localmente. Tente novamente.';
+                    // Salvar dados localmente como backup
+                    this.saveToLocalStorage(leadData);
+                }
+
+                this.showFormError(errorMessage);
+                break;
+            } else {
+                // Aguardar antes de tentar novamente (backoff exponencial)
+                await this.delay(1000 * Math.pow(2, retryCount - 1));
+                continue;
             }
-            
-            this.showFormError(errorMessage);
-            
+
         } finally {
             this.setSubmitLoading(false);
+        }
+        }
+    }
+
+    // Timeout helper
+    timeout(ms, fallbackValue) {
+        return new Promise(resolve => setTimeout(() => resolve(fallbackValue), ms));
+    }
+
+    // Delay helper
+    delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // Salvar dados localmente em caso de falha
+    saveToLocalStorage(data) {
+        try {
+            const backupData = {
+                ...data,
+                timestamp: new Date().toISOString(),
+                status: 'backup'
+            };
+            localStorage.setItem('incode_lead_backup', JSON.stringify(backupData));
+            console.log('💾 Dados salvos localmente como backup');
+        } catch (error) {
+            console.error('Erro ao salvar backup local:', error);
         }
     }
     

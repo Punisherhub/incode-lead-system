@@ -11,17 +11,24 @@
     "migrate:postgres": "node backend/database/migrate-postgres.js",
     "init:postgres": "node backend/database/init-postgres.js"
   },
-  "keywords": ["leads", "incode", "academy", "python", "3d"],
+  "keywords": [
+    "leads",
+    "incode",
+    "academy",
+    "python",
+    "3d"
+  ],
   "author": "Incode Academy",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
+    "compression": "^1.8.1",
     "cors": "^2.8.5",
-    "sqlite3": "^5.1.6",
-    "pg": "^8.11.3",
-    "helmet": "^7.0.0",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
     "express-rate-limit": "^7.1.5",
-    "dotenv": "^16.3.1"
+    "helmet": "^7.0.0",
+    "pg": "^8.11.3",
+    "sqlite3": "^5.1.6"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

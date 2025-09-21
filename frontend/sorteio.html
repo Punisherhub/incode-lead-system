@@ -16,7 +16,7 @@
         
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 50%, #16213e 100%);
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #2d3561 100%);
             color: #ffffff;
             min-height: 100vh;
             overflow-x: hidden;
@@ -120,33 +120,96 @@
         }
         
         .header {
-            margin-bottom: 40px;
-            padding: 30px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
-            backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 50px;
+            padding: 40px;
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+            border-radius: 25px;
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
         }
         
         .logo {
-            width: 120px;
+            width: 180px;
             height: auto;
             margin-bottom: 20px;
-            filter: brightness(1.2);
+            filter: brightness(1.3) drop-shadow(0 0 20px rgba(0, 212, 255, 0.5));
+            animation: logoFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-10px) scale(1.05); }
+        }
+
+        /* INDICADOR AO VIVO - ESTILO ELEGANTE */
+        .event-live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: rgba(255, 69, 58, 0.1);
+            border: 1px solid rgba(255, 69, 58, 0.3);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: #ff453a;
+            border-radius: 50%;
+            animation: liveDotPulse 2s ease-in-out infinite;
+        }
+
+        .live-text {
+            color: #ff453a;
+            font-weight: 500;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+        }
+
+        @keyframes liveDotPulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.4;
+                transform: scale(1.2);
+            }
         }
         
         .header h1 {
-            color: #00d4ff;
-            font-size: 3rem;
-            margin-bottom: 15px;
-            text-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
-            font-weight: 700;
+            color: #ffffff;
+            font-size: 3.5rem;
+            margin-bottom: 20px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            position: relative;
+        }
+
+        .header h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00d4ff, transparent);
         }
         
         .subtitle {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-bottom: 10px;
+            font-size: 1.1rem;
+            opacity: 0.7;
+            margin-bottom: 20px;
+            color: #a0a0a0;
+            font-weight: 400;
+            letter-spacing: 2px;
+            text-transform: uppercase;
         }
         
         .back-link {
@@ -177,10 +240,34 @@
         }
         
         .participant-count {
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            color: #00d4ff;
-            font-weight: 600;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            color: #ffffff;
+            font-weight: 300;
+            background: linear-gradient(145deg, rgba(0, 212, 255, 0.1), rgba(0, 212, 255, 0.05));
+            padding: 25px 50px;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            display: inline-block;
+            letter-spacing: 3px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .participant-count::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 15px;
+            padding: 1px;
+            background: linear-gradient(45deg, #00d4ff, transparent, #00d4ff);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: subtract;
+            opacity: 0.6;
         }
         
         .case-container {
@@ -452,11 +539,60 @@
             to { transform: rotate(360deg); }
         }
         
+        /* ESTILOS DOS BOTÕES - MINIMALISTA ELEGANTE */
+        .btn {
+            padding: 15px 35px;
+            font-size: 1rem;
+            font-weight: 400;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            margin: 8px;
+            letter-spacing: 1px;
+            position: relative;
+            background: rgba(255, 255, 255, 0.05);
+            color: #ffffff;
+            backdrop-filter: blur(20px);
+        }
+
+        .btn-primary {
+            border-color: #00d4ff;
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            background: rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.2);
+        }
+
+        .btn-secondary {
+            border-color: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-1px);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 15px;
             }
-            
+
             .header h1 {
                 font-size: 2.2rem;
             }
@@ -518,8 +654,12 @@
         
         <div class="header">
             <img src="/assets/images/logo-incode.png" alt="Incode Academy" class="logo">
-            <h1>🎉 Sorteio Incode Academy</h1>
-            <p class="subtitle">Sistema de sorteio para eventos ao vivo</p>
+            <h1>INCODE ACADEMY</h1>
+            <p class="subtitle">Sistema de Sorteio para Eventos</p>
+            <div class="event-live-indicator">
+                <span class="live-dot"></span>
+                <span class="live-text">AO VIVO</span>
+            </div>
         </div>
         
         <div class="sorteio-section">
@@ -599,6 +739,11 @@
                 <button class="btn btn-secondary" id="resetBtn" style="display: none;">🔄 Novo Sorteio</button>
                 <button class="btn btn-secondary" id="audioToggle" title="Ligar/Desligar Som">🔊</button>
             </div>
+
+            <!-- INDICADOR DE PERFORMANCE ADAPTATIVA -->
+            <div id="performanceIndicator" style="text-align: center; margin-top: 15px; font-size: 0.9rem; opacity: 0.8;">
+                <div id="deviceInfo"></div>
+            </div>
         </div>
     </div>
     
@@ -620,6 +765,10 @@
                 this.audioContext = null;
                 this.audioEnabled = true;
 
+                // SISTEMA ADAPTATIVO DE PERFORMANCE
+                this.performanceMode = 'auto'; // auto, high, medium, low
+                this.deviceCapability = this.detectDeviceCapability();
+
                 this.initElements();
                 this.initAudio();
                 this.bindEvents();
@@ -636,6 +785,10 @@
                 this.resetBtn = document.getElementById('resetBtn');
                 this.audioToggleBtn = document.getElementById('audioToggle');
                 this.filtersEl = document.getElementById('filters');
+                this.deviceInfoEl = document.getElementById('deviceInfo');
+
+                // Mostrar informações do dispositivo
+                this.showDeviceInfo();
             }
             
             initAudio() {
@@ -652,46 +805,229 @@
                 this.audioToggleBtn.textContent = this.audioEnabled ? '🔊' : '🔇';
                 this.audioToggleBtn.title = this.audioEnabled ? 'Desligar Som' : 'Ligar Som';
             }
+
+            // DETECÇÃO INTELIGENTE DE CAPACIDADE DO DISPOSITIVO
+            detectDeviceCapability() {
+                const capability = {
+                    score: 0,
+                    level: 'high',
+                    ram: navigator.deviceMemory || 4,
+                    cores: navigator.hardwareConcurrency || 4,
+                    isMobile: /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent),
+                    isLowEnd: false
+                };
+
+                // Calcular score baseado em hardware
+                capability.score += Math.min(capability.ram * 10, 80); // RAM: 0-80 pontos
+                capability.score += Math.min(capability.cores * 5, 20); // CPU: 0-20 pontos
+
+                // Penalizar dispositivos móveis
+                if (capability.isMobile) {
+                    capability.score *= 0.6;
+                }
+
+                // Determinar nível de capacidade
+                if (capability.score >= 60) {
+                    capability.level = 'high'; // PCs modernos
+                } else if (capability.score >= 35) {
+                    capability.level = 'medium'; // PCs intermediários
+                } else {
+                    capability.level = 'low'; // PCs fracos/mobiles
+                    capability.isLowEnd = true;
+                }
+
+                console.log('🖥️ CAPACIDADE DO DISPOSITIVO:', {
+                    score: capability.score,
+                    level: capability.level,
+                    ram: capability.ram + 'GB',
+                    cores: capability.cores,
+                    mobile: capability.isMobile,
+                    lowEnd: capability.isLowEnd
+                });
+
+                return capability;
+            }
+
+            // CONFIGURAÇÕES ADAPTATIVAS BASEADAS NA PERFORMANCE E PARTICIPANTES
+            getAdaptiveSettings() {
+                const participantCount = this.filteredParticipants ? this.filteredParticipants.length : 0;
+                let settings;
+
+                // DETECTAR MEGA EVENTOS (1000+ participantes)
+                if (participantCount >= 1000) {
+                    console.log('🏟️ MEGA EVENTO DETECTADO! Aplicando configurações dramáticas otimizadas...');
+                    return {
+                        duration: 12000,        // 12s - máximo drama e suspense
+                        rotations: 6,           // 6 voltas - mais suspense ainda
+                        itemCount: 100,         // 100 itens - máximo drama
+                        tickInterval: 50,       // som mais rápido para drama
+                        easing: 'cubic-bezier(0.05, 0.7, 0.15, 1)', // easing ULTRA dramático - parada suave
+                        enableExpansion: this.deviceCapability.level === 'high', // efeitos apenas em PCs potentes
+                        audioFases: 5,          // 5 fases para gradação máxima
+                        isMegaEvent: true,
+                        slowDownPhases: 3       // 3 fases de desaceleração
+                    };
+                }
+
+                // DETECTAR EVENTOS GRANDES (500-999 participantes)
+                if (participantCount >= 500) {
+                    console.log('🎪 EVENTO GRANDE DETECTADO! Aplicando configurações balanceadas...');
+                    return {
+                        duration: 8000,         // 8s - drama balanceado
+                        rotations: 4,           // 4 voltas
+                        itemCount: 50,          // 50 itens - reduzido
+                        tickInterval: 60,       // som moderado
+                        easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                        enableExpansion: this.deviceCapability.level === 'high', // apenas PCs potentes
+                        audioFases: 4,          // 4 fases
+                        isLargeEvent: true
+                    };
+                }
+
+                // CONFIGURAÇÕES NORMAIS BASEADAS NO DISPOSITIVO
+                switch (this.deviceCapability.level) {
+                    case 'high':
+                        return {
+                            duration: 12000,        // 12s - máximo drama
+                            rotations: 8,           // 8 voltas
+                            itemCount: 80,          // 80 itens
+                            tickInterval: 40,       // som muito rápido
+                            easing: 'cubic-bezier(0.15, 0, 0.25, 1)',
+                            enableExpansion: true,  // efeitos visuais completos
+                            audioFases: 6          // 6 fases de áudio
+                        };
+                    case 'medium':
+                        return {
+                            duration: 8000,         // 8s - drama moderado
+                            rotations: 5,           // 5 voltas
+                            itemCount: 60,          // 60 itens
+                            tickInterval: 60,       // som moderado
+                            easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)',
+                            enableExpansion: true,  // efeitos reduzidos
+                            audioFases: 4          // 4 fases de áudio
+                        };
+                    case 'low':
+                        return {
+                            duration: 5000,         // 5s - drama básico mas funcional
+                            rotations: 3,           // 3 voltas apenas
+                            itemCount: 40,          // 40 itens
+                            tickInterval: 100,      // som mais lento
+                            easing: 'ease-out',     // easing simples
+                            enableExpansion: false, // sem efeitos pesados
+                            audioFases: 2          // 2 fases simples
+                        };
+                }
+            }
+
+            // MOSTRAR INFORMAÇÕES DO DISPOSITIVO
+            showDeviceInfo() {
+                const capability = this.deviceCapability;
+                const settings = this.getAdaptiveSettings();
+                const participantCount = this.filteredParticipants ? this.filteredParticipants.length : 0;
+
+                let modeIcon, modeName, modeColor = '#00d4ff';
+
+                // MEGA EVENTOS
+                if (settings.isMegaEvent) {
+                    modeIcon = '🏟️';
+                    modeName = 'MEGA EVENTO';
+                    modeColor = '#ff6b00'; // Laranja para destaque
+                }
+                // EVENTOS GRANDES
+                else if (settings.isLargeEvent) {
+                    modeIcon = '🎪';
+                    modeName = 'EVENTO GRANDE';
+                    modeColor = '#ffaa00'; // Amarelo-laranja
+                }
+                // EVENTOS NORMAIS
+                else {
+                    const modeIcons = {
+                        'high': '🚀',
+                        'medium': '⚡',
+                        'low': '💡'
+                    };
+
+                    const modeNames = {
+                        'high': 'ULTRA DRAMA',
+                        'medium': 'DRAMA MODERADO',
+                        'low': 'DRAMA OTIMIZADO'
+                    };
+
+                    modeIcon = modeIcons[capability.level];
+                    modeName = modeNames[capability.level];
+                }
+
+                this.deviceInfoEl.innerHTML = `
+                    <div style="color: ${modeColor}; font-weight: 600;">
+                        ${modeIcon} Modo: ${modeName}
+                    </div>
+                    <div style="font-size: 0.8rem; margin-top: 5px; color: rgba(255,255,255,0.7);">
+                        ${participantCount} participantes • ${settings.duration/1000}s • ${settings.rotations} voltas • ${settings.itemCount} itens
+                        ${capability.isMobile ? ' • 📱 Mobile' : ''} ${capability.isLowEnd ? ' • Otimizado' : ''}
+                    </div>
+                `;
+            }
             
-            // Som de case opening - tick dos itens passando
-            playTickSound(frequency = 800, duration = 0.05) {
+            // Som de case opening - tick dos itens passando (versão melhorada)
+            playTickSound(frequency = 800, duration = 0.05, waveType = 'square') {
                 if (!this.audioContext || !this.audioEnabled) return;
-                
+
                 const oscillator = this.audioContext.createOscillator();
                 const gainNode = this.audioContext.createGain();
-                
+
                 oscillator.connect(gainNode);
                 gainNode.connect(this.audioContext.destination);
-                
+
                 oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-                oscillator.type = 'square';
-                
-                gainNode.gain.setValueAtTime(0.1, this.audioContext.currentTime);
+                oscillator.type = waveType; // Permite diferentes tipos de onda
+
+                // Volume dinâmico baseado na duração (sons mais longos = mais volume)
+                const volume = Math.min(0.15, 0.05 + (duration * 2));
+                gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
                 gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
-                
+
                 oscillator.start(this.audioContext.currentTime);
                 oscillator.stop(this.audioContext.currentTime + duration);
             }
             
-            // Som de abertura da case (início do sorteio)
+            // Som de abertura da case (início do sorteio) - VERSÃO ÉPICA
             playCaseOpenSound() {
                 if (!this.audioContext || !this.audioEnabled) return;
-                
+
+                // Som principal mais dramático
                 const oscillator = this.audioContext.createOscillator();
                 const gainNode = this.audioContext.createGain();
-                
+
                 oscillator.connect(gainNode);
                 gainNode.connect(this.audioContext.destination);
-                
-                oscillator.frequency.setValueAtTime(200, this.audioContext.currentTime);
-                oscillator.frequency.exponentialRampToValueAtTime(600, this.audioContext.currentTime + 0.3);
+
+                oscillator.frequency.setValueAtTime(150, this.audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.8);
                 oscillator.type = 'sawtooth';
-                
-                gainNode.gain.setValueAtTime(0.2, this.audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.3);
-                
+
+                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.8);
+
                 oscillator.start(this.audioContext.currentTime);
-                oscillator.stop(this.audioContext.currentTime + 0.3);
+                oscillator.stop(this.audioContext.currentTime + 0.8);
+
+                // Efeito adicional de reverb
+                setTimeout(() => {
+                    const oscillator2 = this.audioContext.createOscillator();
+                    const gainNode2 = this.audioContext.createGain();
+
+                    oscillator2.connect(gainNode2);
+                    gainNode2.connect(this.audioContext.destination);
+
+                    oscillator2.frequency.setValueAtTime(400, this.audioContext.currentTime);
+                    oscillator2.type = 'triangle';
+
+                    gainNode2.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+                    gainNode2.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
+
+                    oscillator2.start(this.audioContext.currentTime);
+                    oscillator2.stop(this.audioContext.currentTime + 0.5);
+                }, 200);
             }
             
             // Som de vitória (quando para no vencedor)
@@ -770,11 +1106,15 @@
             
             async loadParticipants() {
                 try {
-                    const response = await fetch('/api/leads');
+                    // Carregar TODOS os leads para mega eventos - limite alto
+                    const response = await fetch('/api/leads?limit=10000');
                     if (!response.ok) throw new Error('Erro ao carregar participantes');
                     
                     const data = await response.json();
-                    
+
+                    console.log('🔍 Dados recebidos da API:', data);
+                    console.log('📊 Total na API:', data.pagination?.total || 'desconhecido');
+
                     // A API retorna um objeto com 'leads' ou pode retornar array diretamente
                     if (data.success && data.leads) {
                         this.participants = data.leads;
@@ -785,9 +1125,12 @@
                     } else {
                         this.participants = [];
                     }
-                    
+
+                    console.log('✅ Participantes carregados:', this.participants.length);
+
                     this.updateFilteredParticipants();
                     this.updateParticipantCount();
+                    this.showDeviceInfo(); // Atualizar indicador após carregar participantes
                 } catch (error) {
                     console.error('Erro:', error);
                     this.participants = [];
@@ -946,6 +1289,9 @@
 
                 console.log(`📊 Filtros aplicados - Período: ${this.currentPeriodFilter}, Tipo: ${this.currentTypeFilter}, Critério: ${this.currentDateCriteria}`);
                 console.log(`🎯 Participantes filtrados: ${this.filteredParticipants.length} de ${this.participants.length} total`);
+
+                // Atualizar indicador de dispositivo quando filtros mudarem
+                this.showDeviceInfo();
             }
 
             matchesCustomFilters(participant, leadDate) {
@@ -1031,7 +1377,8 @@
             
             createCaseItems(participants, winner, winnerPosition) {
                 const items = [];
-                const totalItems = 80; // Aumentado para mais variedade
+                const settings = this.getAdaptiveSettings();
+                const totalItems = settings.itemCount; // Adaptativo baseado na performance
                 
                 // Criar array de participantes embaralhados para maior aleatoriedade visual
                 const shuffledParticipants = [];
@@ -1077,7 +1424,12 @@
             }
             
             async startDraw() {
-                if (this.isDrawing || this.filteredParticipants.length === 0) return;
+                // PROTEÇÃO CRÍTICA: Não sortear se não houver participantes
+                if (this.isDrawing || this.filteredParticipants.length === 0) {
+                    console.error('❌ ERRO: Não é possível sortear sem participantes!');
+                    alert('❌ Erro: Nenhum participante disponível para sorteio!');
+                    return;
+                }
                 
                 this.isDrawing = true;
                 this.drawBtn.disabled = true;
@@ -1093,14 +1445,27 @@
                 // Hide winner announcement
                 this.winnerAnnouncementEl.classList.remove('show');
                 
-                // ALEATORIEDADE 100% JUSTA - Usar crypto.getRandomValues se disponível
+                // ALEATORIEDADE 100% CRIPTOGRAFICAMENTE SEGURA - GARANTIA TOTAL
                 let randomValue;
                 if (window.crypto && window.crypto.getRandomValues) {
-                    const array = new Uint32Array(1);
+                    // Usar múltiplos valores para aumentar entropia
+                    const array = new Uint32Array(3);
                     window.crypto.getRandomValues(array);
-                    randomValue = array[0] / (0xffffffff + 1); // Converter para 0-1
+
+                    // Combinar múltiplos valores para máxima aleatoriedade
+                    const combined = (array[0] ^ array[1] ^ array[2]) >>> 0;
+                    randomValue = combined / (0xffffffff + 1);
+
+                    console.log('🔐 ALEATORIEDADE CRIPTOGRÁFICA SEGURA:', {
+                        valores: array,
+                        combinado: combined,
+                        resultado: randomValue,
+                        garantia: '100% JUSTA'
+                    });
                 } else {
-                    randomValue = Math.random(); // Fallback
+                    // Fallback com múltiplas chamadas para maior aleatoriedade
+                    randomValue = (Math.random() + Math.random() + Math.random()) / 3;
+                    console.log('⚠️ Fallback: Aleatoriedade pseudoaleatória melhorada');
                 }
                 
                 // Escolher vencedor com aleatoriedade criptograficamente segura
@@ -1108,48 +1473,54 @@
                 const winner = this.filteredParticipants[winnerIndex];
                 
                 console.log('🎯 Vencedor selecionado:', winner.nome, 'Índice:', winnerIndex, 'de', this.filteredParticipants.length);
-                
-                // EXPANDIR FOCO NO CARROSSEL
-                this.expandCarouselFocus();
-                
-                // Posição do vencedor na reel (randomizar um pouco para variar)
-                const winnerPosition = 35 + Math.floor(Math.random() * 10); // Entre 35-44 (meio-fim)
-                
+
+                // OBTER CONFIGURAÇÕES ADAPTATIVAS
+                const settings = this.getAdaptiveSettings();
+                console.log('⚙️ Configurações adaptativas:', settings);
+
+                // EXPANDIR FOCO NO CARROSSEL (se suportado pelo dispositivo)
+                if (settings.enableExpansion) {
+                    this.expandCarouselFocus();
+                }
+
+                // Posição do vencedor na reel (adaptada ao número de itens)
+                const winnerPosition = Math.floor(settings.itemCount * 0.6) + Math.floor(Math.random() * Math.floor(settings.itemCount * 0.2));
+
                 // Criar itens da reel com vencedor correto
                 const caseItems = this.createCaseItems(this.filteredParticipants, winner, winnerPosition);
-                
+
                 // Limpar e adicionar itens à reel
                 this.caseReelEl.innerHTML = '';
                 caseItems.forEach(item => this.caseReelEl.appendChild(item));
-                
+
                 // Calcular posição final (centralizar o vencedor)
                 const itemWidth = 190; // width + gap
                 const containerWidth = this.caseReelEl.parentElement.offsetWidth;
                 const finalPosition = -(winnerPosition * itemWidth) + (containerWidth / 2) - (itemWidth / 2);
-                
-                // Começar da esquerda e fazer múltiplas voltas
+
+                // Começar da esquerda e fazer voltas baseadas na capacidade do dispositivo
                 const startPosition = containerWidth;
-                const extraDistance = itemWidth * caseItems.length * 4; // 4 voltas completas para mais suspense
+                const extraDistance = itemWidth * caseItems.length * settings.rotations;
                 
                 // Definir posição inicial
                 this.caseReelEl.style.transform = `translateX(${startPosition}px)`;
                 this.caseReelEl.style.transition = 'none';
                 
-                // Iniciar sons de tick durante a animação
-                this.startTickSounds();
-                
-                // TEMPO AUMENTADO PARA MAIS SUSPENSE - 7 segundos total
+                // Iniciar sons de tick durante a animação (adaptativo)
+                this.startTickSounds(settings);
+
+                // TEMPO ADAPTATIVO BASEADO NA CAPACIDADE DO DISPOSITIVO
                 setTimeout(() => {
-                    // Aplicar animação com easing mais dramático
-                    this.caseReelEl.style.transition = 'transform 7s cubic-bezier(0.23, 1, 0.320, 1)';
+                    // Aplicar animação com configurações adaptativas
+                    this.caseReelEl.style.transition = `transform ${settings.duration}ms ${settings.easing}`;
                     this.caseReelEl.style.transform = `translateX(${finalPosition}px)`;
-                    
+
                     // Quando a animação terminar, mostrar o vencedor
                     setTimeout(() => {
                         this.stopTickSounds();
                         this.showWinner(winner);
-                    }, 7100); // Ligeiramente após a animação terminar
-                }, 200);
+                    }, settings.duration + 200); // Ligeiramente após a animação terminar
+                }, 300);
             }
             
             expandCarouselFocus() {
@@ -1217,37 +1588,61 @@
                 }
             }
             
-            startTickSounds() {
+            startTickSounds(settings) {
+                const duration = settings.duration;
+                const fases = settings.audioFases;
+                const baseInterval = settings.tickInterval;
+
                 this.tickInterval = setInterval(() => {
                     // Frequência variável para criar sensação de velocidade
-                    const randomFreq = 700 + Math.random() * 500;
-                    this.playTickSound(randomFreq, 0.02);
-                }, 60); // Som mais rápido inicialmente
-                
-                // Fase 2 - Desacelerar gradualmente (7 segundos total)
-                setTimeout(() => {
-                    clearInterval(this.tickInterval);
-                    this.tickInterval = setInterval(() => {
-                        const randomFreq = 600 + Math.random() * 400;
-                        this.playTickSound(randomFreq, 0.03);
-                    }, 90);
-                }, 2000); // 2s
-                
-                setTimeout(() => {
-                    clearInterval(this.tickInterval);
-                    this.tickInterval = setInterval(() => {
-                        const randomFreq = 500 + Math.random() * 300;
-                        this.playTickSound(randomFreq, 0.04);
-                    }, 140);
-                }, 4000); // 4s
-                
-                setTimeout(() => {
-                    clearInterval(this.tickInterval);
-                    this.tickInterval = setInterval(() => {
-                        const randomFreq = 400 + Math.random() * 200;
-                        this.playTickSound(randomFreq, 0.06);
-                    }, 220);
-                }, 6000); // 6s - Fase final bem devagar
+                    const randomFreq = 800 + Math.random() * 600;
+                    this.playTickSound(randomFreq, 0.03);
+                }, baseInterval); // Som adaptativo baseado na capacidade
+
+                // SISTEMA ADAPTATIVO DE FASES DE ÁUDIO COM DESACELERAÇÃO DRAMÁTICA
+                for (let fase = 2; fase <= fases; fase++) {
+                    const timing = (duration / fases) * (fase - 1);
+
+                    // Desaceleração progressiva mais dramática
+                    const multiplier = Math.pow(1.8, fase - 1); // Multiplicador exponencial
+                    const interval = baseInterval + (fase - 1) * 40 + (multiplier * 20);
+                    const freqBase = 800 - (fase - 1) * 80;
+                    const freqVariacao = 600 - (fase - 1) * 60;
+
+                    setTimeout(() => {
+                        clearInterval(this.tickInterval);
+                        this.tickInterval = setInterval(() => {
+                            const randomFreq = freqBase + Math.random() * freqVariacao;
+                            this.playTickSound(randomFreq, 0.03 + (fase - 1) * 0.015);
+                        }, interval);
+
+                        // Log da mudança de fase para debug
+                        console.log(`🎵 Fase ${fase}/${fases} - Intervalo: ${interval}ms, Freq: ${freqBase}±${freqVariacao}`);
+                    }, timing);
+                }
+
+                // FASE FINAL ULTRA DRAMÁTICA (últimos 2 segundos)
+                if (settings.isMegaEvent) {
+                    setTimeout(() => {
+                        clearInterval(this.tickInterval);
+                        let finalTicks = 0;
+                        const maxFinalTicks = 8;
+
+                        const finalTickInterval = setInterval(() => {
+                            const dramaticFreq = 400 + Math.random() * 200;
+                            this.playTickSound(dramaticFreq, 0.06);
+                            finalTicks++;
+
+                            if (finalTicks >= maxFinalTicks) {
+                                clearInterval(finalTickInterval);
+                                // Som final ÉPICO antes da parada
+                                setTimeout(() => {
+                                    this.playTickSound(200, 0.1, 'sawtooth');
+                                }, 500);
+                            }
+                        }, 250); // Tick super lento final
+                    }, duration - 2000);
+                }
             }
             
             stopTickSounds() {

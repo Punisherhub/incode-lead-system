@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
@@ -10,6 +11,7 @@ const leadRoutes = require('./routes/leads');
 const configRoutes = require('./routes/config');
 const participacoesRoutes = require('./routes/participacoes');
 const exportRoutes = require('./routes/export');
+const monitor = require('./middleware/monitor');
 
 // Usar PostgreSQL em produção, SQLite em desenvolvimento
 let dbModule;
@@ -46,10 +48,45 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Rate limiting
-const limiter = rateLimit({
+// Compressão gzip para reduzir tamanho das respostas
+app.use(compression({
+    filter: (req, res) => {
+        if (req.headers['x-no-compression']) {
+            return false;
+        }
+        return compression.filter(req, res);
+    },
+    level: 6,
+    threshold: 1024
+}));
+
+// Rate limiting otimizado para eventos de alta carga
+const eventLimiter = rateLimit({
+    windowMs: 1 * 60 * 1000, // 1 minuto
+    max: process.env.NODE_ENV === 'production' ? 200 : 500, // Mais permissivo em dev
+    message: {
+        error: 'Muitas tentativas. Aguarde 1 minuto.',
+        code: 'RATE_LIMIT_EXCEEDED'
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => {
+        // Em desenvolvimento, usar User-Agent para simular IPs diferentes
+        if (process.env.NODE_ENV !== 'production') {
+            return req.get('User-Agent') || req.ip;
+        }
+        return req.ip;
+    },
+    skip: (req) => {
+        // Pular rate limiting para health checks e status
+        return req.path === '/api/health' || req.path === '/api/status';
+    }
+});
+
+// Rate limiting mais permissivo para APIs de leitura
+const readLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: process.env.API_RATE_LIMIT || 1000, // máximo de requests por IP (aumentado)
+    max: process.env.API_RATE_LIMIT || 2000, // Aumentado para eventos
     message: {
         error: 'Muitas tentativas. Tente novamente em 15 minutos.',
         code: 'RATE_LIMIT_EXCEEDED'
@@ -58,30 +95,60 @@ const limiter = rateLimit({
     legacyHeaders: false,
 });
 
-app.use('/api/', limiter);
+// Aplicar rate limiting específico para endpoints críticos
+// Verificar se está em modo evento
+const isEventMode = process.env.EVENT_MODE === 'true';
+
+if (!isEventMode) {
+    app.use('/api/leads', eventLimiter);
+    app.use('/api/participacoes', eventLimiter);
+    app.use('/api/', readLimiter);
+    console.log('✅ Rate limiting ativado (modo normal)');
+} else {
+    console.log('🚨 MODO EVENTO: Rate limiting desativado para alta carga!');
+}
 
 // Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Servir arquivos estáticos com headers para evitar cache
+// Servir arquivos estáticos com cache otimizado
 app.use(express.static(path.join(__dirname, '../frontend'), {
-    setHeaders: (res, path) => {
-        // Desabilitar cache para todos os arquivos estáticos
-        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
-        res.setHeader('Pragma', 'no-cache');
-        res.setHeader('Expires', '0');
+    setHeaders: (res, filePath) => {
+        const ext = path.extname(filePath);
+
+        // Cache agressivo para assets estáticos
+        if (ext === '.css' || ext === '.js' || ext === '.png' || ext === '.jpg' || ext === '.ico') {
+            res.setHeader('Cache-Control', 'public, max-age=31536000'); // 1 ano
+            res.setHeader('ETag', '"' + Date.now() + '"');
+        }
+        // Cache curto para HTML
+        else if (ext === '.html') {
+            res.setHeader('Cache-Control', 'public, max-age=300'); // 5 minutos
+        }
+        // Sem cache apenas para arquivos específicos
+        else {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+            res.setHeader('Pragma', 'no-cache');
+            res.setHeader('Expires', '0');
+        }
     }
 }));
 
-// Logging middleware
+// Sistema de monitoramento
+app.use(monitor.requestMonitor());
+
+// Logging middleware (simplificado, o monitor já faz logs detalhados)
 app.use((req, res, next) => {
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] ${req.method} ${req.path} - IP: ${req.ip}`);
+    // Log apenas para APIs não críticas para reduzir noise
+    if (!req.path.includes('/api/leads') && !req.path.includes('/api/participacoes')) {
+        const timestamp = new Date().toISOString();
+        console.log(`[${timestamp}] ${req.method} ${req.path} - IP: ${req.ip}`);
+    }
     next();
 });
 
-// Health check endpoint
+// Health check endpoint com monitoramento
 app.get('/api/health', (req, res) => {
     res.json({
         status: 'OK',
@@ -89,6 +156,19 @@ app.get('/api/health', (req, res) => {
         version: '1.0.0',
         message: 'Incode Academy Lead System is running! 🚀'
     });
+});
+
+// Endpoint de status do sistema (monitoramento)
+app.get('/api/status', (req, res) => {
+    try {
+        const status = monitor.getStatus();
+        res.json(status);
+    } catch (error) {
+        res.status(500).json({
+            error: 'Erro ao obter status do sistema',
+            message: error.message
+        });
+    }
 });
 
 // Endpoint para executar migração PostgreSQL (apenas em produção)

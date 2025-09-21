@@ -29,6 +29,10 @@ sqlite3 backend/database/leads.db "SELECT * FROM leads ORDER BY created_at DESC 
 
 # Check database schema
 sqlite3 backend/database/leads.db ".schema leads"
+sqlite3 backend/database/leads.db ".schema participacoes"
+
+# View participations data
+sqlite3 backend/database/leads.db "SELECT * FROM participacoes ORDER BY data_participacao DESC LIMIT 10;"
 
 # Backup database
 cp backend/database/leads.db backend/database/leads_backup_$(date +%Y%m%d_%H%M%S).db
