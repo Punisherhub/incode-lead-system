@@ -7,7 +7,7 @@
     <link rel="icon" type="image/x-icon" href="assets/images/logo-incode.png">
 
     <!-- QRCode.js Library -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
 
     <style>
         * {
@@ -274,34 +274,60 @@
         };
 
         // Função para gerar QR Code
-        async function generateQRCode(elementId, url, displayUrl = null) {
+        function generateQRCode(elementId, url, displayUrl = null) {
             try {
-                const canvas = document.createElement('canvas');
-                await QRCode.toCanvas(canvas, url, QR_OPTIONS);
+                if (typeof qrcode === 'undefined') {
+                    throw new Error('Biblioteca QR Code não carregada');
+                }
+
+                // Criar QR code usando qrcode-generator
+                const qr = qrcode(0, 'H'); // tipo 0 (auto), nível de correção H
+                qr.addData(url);
+                qr.make();
+
+                // Criar elemento de imagem
+                const qrCodeHTML = qr.createImgTag(4); // cell size 4
 
                 const container = document.getElementById(elementId);
-                container.innerHTML = '';
-                container.appendChild(canvas);
+                container.innerHTML = qrCodeHTML;
+
+                // Estilizar a imagem gerada
+                const img = container.querySelector('img');
+                if (img) {
+                    img.style.display = 'block';
+                    img.style.margin = '0 auto';
+                    img.style.border = '1px solid #ddd';
+                    img.style.borderRadius = '8px';
+                }
 
                 // Atualizar display da URL se fornecido
                 if (displayUrl) {
                     document.getElementById(displayUrl).textContent = url;
                 }
 
-                return canvas;
+                return img;
             } catch (error) {
                 console.error('Erro ao gerar QR code:', error);
                 const container = document.getElementById(elementId);
-                container.innerHTML = '<div class="error">❌ Erro ao gerar QR Code</div>';
+                container.innerHTML = '<div class="error">❌ Erro ao gerar QR Code: ' + error.message + '</div>';
             }
         }
 
         // Função para baixar QR Code
         function downloadQR(elementId, filename) {
             const container = document.getElementById(elementId);
-            const canvas = container.querySelector('canvas');
+            const img = container.querySelector('img');
 
-            if (canvas) {
+            if (img) {
+                // Criar canvas para converter imagem em PNG
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = img.naturalWidth || img.width;
+                canvas.height = img.naturalHeight || img.height;
+
+                ctx.drawImage(img, 0, 0);
+
                 const link = document.createElement('a');
                 link.download = `${filename}.png`;
                 link.href = canvas.toDataURL('image/png', 1.0);
@@ -325,17 +351,24 @@
         }
 
         // Gerar QR codes quando a página carregar
-        window.addEventListener('load', async () => {
-            console.log('🔄 Gerando QR codes...');
+        window.addEventListener('load', () => {
+            // Aguardar um pouco para garantir que as bibliotecas carregaram
+            setTimeout(() => {
+                console.log('🔄 Gerando QR codes...');
 
-            // QR Code do site
-            const websiteURL = getCurrentWebsiteURL();
-            await generateQRCode('qr-website', websiteURL, 'website-url');
+                try {
+                    // QR Code do site
+                    const websiteURL = getCurrentWebsiteURL();
+                    generateQRCode('qr-website', websiteURL, 'website-url');
 
-            // QR Code do Instagram
-            await generateQRCode('qr-instagram', INSTAGRAM_URL);
+                    // QR Code do Instagram
+                    generateQRCode('qr-instagram', INSTAGRAM_URL);
 
-            console.log('✅ QR codes gerados com sucesso!');
+                    console.log('✅ QR codes gerados com sucesso!');
+                } catch (error) {
+                    console.error('❌ Erro geral na geração de QR codes:', error);
+                }
+            }, 1000); // Aguardar 1 segundo
         });
 
         // Função para atualizar URL do site dinamicamente (caso necessário)
