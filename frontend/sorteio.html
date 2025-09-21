@@ -717,7 +717,7 @@
                     <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: center;">
                         <span style="color: #00d4ff; font-weight: 600; margin-right: 10px;">🎯 Tipo:</span>
                         <button class="filter-btn active" data-type="all">Todos os Tipos</button>
-                        <button class="filter-btn" data-type="geral">Leads Gerais</button>
+                        <button class="filter-btn" data-type="geral">Gerais</button>
                         <button class="filter-btn" data-type="workshop">Workshop/Evento</button>
                     </div>
                 </div>
@@ -969,9 +969,10 @@
             }
             
             // Som de case opening - tick dos itens passando (versão melhorada)
-            playTickSound(frequency = 800, duration = 0.05, waveType = 'square') {
+            playTickSound(frequency = 600, duration = 0.05, intensity = 1.0) {
                 if (!this.audioContext || !this.audioEnabled) return;
 
+                // SOM SIMPLES - De volta ao básico
                 const oscillator = this.audioContext.createOscillator();
                 const gainNode = this.audioContext.createGain();
 
@@ -979,12 +980,12 @@
                 gainNode.connect(this.audioContext.destination);
 
                 oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
-                oscillator.type = waveType; // Permite diferentes tipos de onda
+                oscillator.type = 'sine'; // Som mais suave
 
-                // Volume dinâmico baseado na duração (sons mais longos = mais volume)
-                const volume = Math.min(0.15, 0.05 + (duration * 2));
+                // Volume baixo e controlado
+                const volume = 0.03 * intensity;
                 gainNode.gain.setValueAtTime(volume, this.audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + duration);
+                gainNode.gain.linearRampToValueAtTime(0, this.audioContext.currentTime + duration);
 
                 oscillator.start(this.audioContext.currentTime);
                 oscillator.stop(this.audioContext.currentTime + duration);
@@ -1005,7 +1006,7 @@
                 oscillator.frequency.exponentialRampToValueAtTime(800, this.audioContext.currentTime + 0.8);
                 oscillator.type = 'sawtooth';
 
-                gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                gainNode.gain.setValueAtTime(0.08, this.audioContext.currentTime); // Muito mais baixo
                 gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.8);
 
                 oscillator.start(this.audioContext.currentTime);
@@ -1022,7 +1023,7 @@
                     oscillator2.frequency.setValueAtTime(400, this.audioContext.currentTime);
                     oscillator2.type = 'triangle';
 
-                    gainNode2.gain.setValueAtTime(0.15, this.audioContext.currentTime);
+                    gainNode2.gain.setValueAtTime(0.04, this.audioContext.currentTime); // Muito mais baixo
                     gainNode2.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 0.5);
 
                     oscillator2.start(this.audioContext.currentTime);
@@ -1493,10 +1494,35 @@
                 this.caseReelEl.innerHTML = '';
                 caseItems.forEach(item => this.caseReelEl.appendChild(item));
 
-                // Calcular posição final (centralizar o vencedor)
+                // Calcular posição final com VARIAÇÃO ALEATÓRIA DRAMÁTICA
                 const itemWidth = 190; // width + gap
                 const containerWidth = this.caseReelEl.parentElement.offsetWidth;
-                const finalPosition = -(winnerPosition * itemWidth) + (containerWidth / 2) - (itemWidth / 2);
+
+                // Posição centralizada base
+                const basePosition = -(winnerPosition * itemWidth) + (containerWidth / 2) - (itemWidth / 2);
+
+                // DRAMA MÁXIMO: Linha para preferencialmente no início ou final do nome
+                // 70% das vezes para nas bordas, 30% no centro para variar
+                const dramaProbability = Math.random();
+                let randomOffset;
+
+                if (dramaProbability < 0.35) {
+                    // 35% - Para no INÍCIO do nome (bem à esquerda)
+                    randomOffset = -itemWidth * (0.25 + Math.random() * 0.15); // -25% a -40%
+                    console.log('🎭 DRAMA: Parando no INÍCIO do nome');
+                } else if (dramaProbability < 0.70) {
+                    // 35% - Para no FINAL do nome (bem à direita)
+                    randomOffset = itemWidth * (0.25 + Math.random() * 0.15); // +25% a +40%
+                    console.log('🎭 DRAMA: Parando no FINAL do nome');
+                } else {
+                    // 30% - Para no centro/meio (menos dramático)
+                    randomOffset = (Math.random() - 0.5) * itemWidth * 0.2; // -10% a +10%
+                    console.log('🎭 DRAMA: Parando no CENTRO do nome');
+                }
+
+                const finalPosition = basePosition + randomOffset;
+
+                console.log(`🎯 Posição dramática: offset ${Math.round(randomOffset)}px (${randomOffset > 0 ? 'direita' : 'esquerda'})`);
 
                 // Começar da esquerda e fazer voltas baseadas na capacidade do dispositivo
                 const startPosition = containerWidth;
@@ -1590,79 +1616,101 @@
             
             startTickSounds(settings) {
                 const duration = settings.duration;
-                const fases = settings.audioFases;
+                const itemWidth = 120; // largura de cada item no carrossel
                 const itemCount = settings.itemCount;
                 const rotations = settings.rotations;
 
-                // CALCULAR INTERVALO BASEADO NA VELOCIDADE VISUAL REAL
-                // Sincronizar com a velocidade de movimento visual dos itens
-                const itemWidth = 120; // largura de cada item no carrossel
-                const totalPixels = itemCount * itemWidth * rotations; // distância total em pixels
-                const pixelsPerSecond = totalPixels / (duration / 1000); // velocidade em pixels/segundo
+                console.log(`🎵 Iniciando áudio sincronizado: ${itemCount} itens × ${rotations} voltas por ${duration}ms`);
 
-                // Calcular quantos itens passam por segundo baseado na velocidade visual
-                const itemsPerSecond = pixelsPerSecond / itemWidth;
-                const ticksPerSecond = Math.min(itemsPerSecond * 0.8, 50); // Máximo 50 ticks/segundo
-                const baseInterval = Math.max(20, 1000 / ticksPerSecond); // Converter para intervalo em ms
+                // SISTEMA DE ÁUDIO BASEADO NA VELOCIDADE REAL DA ANIMAÇÃO
+                // Monitora a posição atual da animação para ajustar o som
+                const startTime = Date.now();
+                let lastItemPosition = 0;
+                let lastTickTime = 0; // Controle de throttling
 
-                console.log(`🎵 Áudio sincronizado: ${itemCount} itens × ${rotations} voltas = ${totalPixels}px total`);
-                console.log(`🎵 Velocidade: ${Math.round(pixelsPerSecond)}px/s = ${Math.round(itemsPerSecond)} itens/s`);
-                console.log(`🎵 Intervalo: ${Math.round(baseInterval)}ms (${Math.round(ticksPerSecond)} ticks/s)`);
+                // Função que calcula a posição baseada na curva de easing da animação
+                const getAnimationProgress = (elapsed) => {
+                    const progress = Math.min(elapsed / duration, 1);
 
-                this.tickInterval = setInterval(() => {
-                    // Frequência variável para criar sensação de velocidade
-                    const randomFreq = 800 + Math.random() * 600;
-                    this.playTickSound(randomFreq, 0.03);
-                }, baseInterval);
+                    // Detectar qual curva de easing está sendo usada baseado na configuração
+                    const easing = settings.easing;
 
-                // SISTEMA ADAPTATIVO DE FASES DE ÁUDIO COM DESACELERAÇÃO BASEADA NO MOVIMENTO
-                for (let fase = 2; fase <= fases; fase++) {
-                    const timing = (duration / fases) * (fase - 1);
+                    if (easing === 'cubic-bezier(0.05, 0.7, 0.15, 1)') {
+                        // ULTRA DRAMA - curva específica para parada suave
+                        return 1 - Math.pow(1 - progress, 6); // Muito suave no final
+                    } else if (easing === 'cubic-bezier(0.25, 0.46, 0.45, 0.94)') {
+                        // DRAMA MODERADO - curva ease-out-quart padrão
+                        return 1 - Math.pow(1 - progress, 4);
+                    } else if (easing === 'cubic-bezier(0.15, 0, 0.25, 1)') {
+                        // MEGA SORTEIO - curva acelerada
+                        return 1 - Math.pow(1 - progress, 3);
+                    } else if (easing === 'ease-out') {
+                        // OTIMIZADO - curva simples
+                        return 1 - Math.pow(1 - progress, 2);
+                    } else {
+                        // Fallback - cubic-bezier padrão
+                        return 1 - Math.pow(1 - progress, 4);
+                    }
+                };
 
-                    // Desaceleração progressiva baseada na velocidade visual
-                    const speedFactor = Math.min(2.0, pixelsPerSecond / 1000); // Fator baseado na velocidade
-                    const multiplier = Math.pow(1.5 + (speedFactor * 0.3), fase - 1);
-                    const interval = baseInterval + (fase - 1) * (30 + speedFactor * 10) + (multiplier * 15);
-                    const freqBase = 800 - (fase - 1) * 80;
-                    const freqVariacao = 600 - (fase - 1) * 60;
-
-                    setTimeout(() => {
+                // Sistema de áudio baseado na velocidade real
+                const audioLoop = () => {
+                    const elapsed = Date.now() - startTime;
+                    if (elapsed >= duration) {
                         clearInterval(this.tickInterval);
-                        this.tickInterval = setInterval(() => {
-                            const randomFreq = freqBase + Math.random() * freqVariacao;
-                            this.playTickSound(randomFreq, 0.03 + (fase - 1) * 0.015);
-                        }, interval);
+                        return;
+                    }
 
-                        // Log da mudança de fase para debug
-                        console.log(`🎵 Fase ${fase}/${fases} - Intervalo: ${Math.round(interval)}ms, Movimento: ${totalMovement}, Freq: ${freqBase}±${freqVariacao}`);
-                    }, timing);
-                }
+                    // Calcular posição atual baseada na curva de animação
+                    const animationProgress = getAnimationProgress(elapsed);
+                    const currentPixelPosition = animationProgress * (itemCount * itemWidth * rotations);
+                    const currentItemPosition = Math.floor(currentPixelPosition / itemWidth);
 
-                // FASE FINAL ADAPTATIVA BASEADA NO NÚMERO DE ITENS
-                const finalDuration = Math.min(2000, duration * 0.2); // 20% do tempo final ou 2s
-                const finalTicks = Math.max(4, Math.min(10, itemCount / 10)); // Entre 4-10 ticks baseado nos itens
+                    // Tocar som apenas quando um novo item passa
+                    if (currentItemPosition > lastItemPosition) {
+                        const itemsPassedThisFrame = currentItemPosition - lastItemPosition;
 
+                        // SISTEMA DE THROTTLING PARA EVITAR MUITOS TICKS NO INÍCIO
+                        if (itemsPassedThisFrame > 0) {
+                            const now = Date.now();
+
+                            // Calcular intervalo baseado na velocidade - MAIS SINCRONIZADO
+                            const speedFactor = 1 - animationProgress; // 1 = rápido (início), 0 = lento (final)
+                            const minInterval = speedFactor > 0.6 ? 50 : // Primeiros 60%: MUITO RÁPIDO - 1 tick a cada 50ms
+                                               speedFactor > 0.2 ? 100 : // 60%-80%: MODERADO - 1 tick a cada 100ms
+                                               180; // Últimos 20%: LENTO - 1 tick a cada 180ms
+
+                            // Só tocar se passou tempo suficiente desde o último tick
+                            if (now - lastTickTime >= minInterval) {
+                                const frequency = 500 + (speedFactor * 100); // 500-600Hz (simples)
+                                const duration = 0.04; // 40ms fixo
+                                const intensity = 0.5; // Intensidade fixa e baixa
+                                this.playTickSound(frequency, duration, intensity);
+                                lastTickTime = now;
+
+                                console.log(`🎵 Tick: ${Math.round(speedFactor * 100)}% velocidade (intervalo: ${minInterval}ms)`);
+                            }
+                        }
+
+                        lastItemPosition = currentItemPosition;
+                        console.log(`🎵 Item ${currentItemPosition}/${itemCount * rotations} (${Math.round(animationProgress * 100)}% concluído)`);
+                    }
+                };
+
+                // Executar verificação a cada 16ms (~60fps)
+                this.tickInterval = setInterval(audioLoop, 16);
+
+                // FASE FINAL SIMPLIFICADA - Apenas 3 ticks no final
                 setTimeout(() => {
                     clearInterval(this.tickInterval);
-                    let currentTick = 0;
 
-                    const finalTickInterval = setInterval(() => {
-                        const progress = currentTick / finalTicks;
-                        const dramaticFreq = 400 + Math.random() * 200 - (progress * 100); // Frequência decrescente
-                        this.playTickSound(dramaticFreq, 0.06 + (progress * 0.04));
-                        currentTick++;
+                    // 3 ticks finais bem espaçados
+                    setTimeout(() => this.playTickSound(450, 0.06, 0.6), 0);
+                    setTimeout(() => this.playTickSound(400, 0.08, 0.7), 300);
+                    setTimeout(() => this.playTickSound(350, 0.1, 0.8), 700); // Som final
 
-                        if (currentTick >= finalTicks) {
-                            clearInterval(finalTickInterval);
-                            // Som final ÉPICO sincronizado com a parada visual
-                            setTimeout(() => {
-                                this.playTickSound(200, 0.15, 'sawtooth');
-                            }, 100);
-                        }
-                    }, finalDuration / finalTicks); // Distribuir ticks uniformemente
-
-                    console.log(`🎵 Fase final: ${finalTicks} ticks em ${finalDuration}ms (${Math.round(finalDuration/finalTicks)}ms cada)`);
-                }, duration - finalDuration);
+                    console.log(`🎵 Fase final: 3 ticks simples`);
+                }, duration - 1000); // 1 segundo final
             }
             
             stopTickSounds() {
