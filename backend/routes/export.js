@@ -47,23 +47,12 @@ router.get('/leads', async (req, res) => {
             });
         }
 
-        // Processar dados para export
+        // Processar dados para export - apenas campos solicitados
         const dadosExport = leads.map(lead => ({
-            'ID': lead.id,
             'Nome': lead.nome,
             'Email': lead.email,
             'Telefone': lead.telefone,
-            'Idade': lead.idade,
-            'Curso Interesse': lead.curso,
-            'Tipo Lead': lead.tipo_lead || 'geral',
-            'Evento': lead.evento || '',
-            'Dia Evento': lead.dia_evento || '',
-            'Status': lead.status,
-            'Origem': lead.origem,
-            'Data Cadastro': formatDate(lead.data_criacao),
-            'Data Atualização': formatDate(lead.data_atualizacao),
-            'Enviado N8N': lead.enviado_n8n ? 'Sim' : 'Não',
-            'Tentativas N8N': lead.tentativas_n8n || 0
+            'Idade': lead.idade
         }));
 
         if (formato === 'csv') {
@@ -74,8 +63,9 @@ router.get('/leads', async (req, res) => {
             const bom = '\uFEFF';
             const csvWithBom = bom + csv;
 
+            const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
             res.setHeader('Content-Type', 'text/csv; charset=utf-8');
-            res.setHeader('Content-Disposition', `attachment; filename="leads_incode_${new Date().toISOString().split('T')[0]}.csv"`);
+            res.setHeader('Content-Disposition', `attachment; filename="Leads_Incode_Academy_${dataAtual}.csv"`);
             res.send(csvWithBom);
         } else {
             // JSON format

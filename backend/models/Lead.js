@@ -363,29 +363,39 @@ class Lead {
         }
     }
     
-    // Listar todos os leads com paginação
-    static async findAll(page = 1, limit = 50, filters = {}) {
+    // Listar todos os leads com paginação e filtros melhorados
+    static async findAll(page = 1, limit = 20, filters = {}) {
         try {
             const offset = (page - 1) * limit;
             const isProduction = process.env.NODE_ENV === 'production' && process.env.DATABASE_URL;
-            
+
             let selectQuery = 'SELECT * FROM leads';
             let countQuery = 'SELECT COUNT(*) as total FROM leads';
             const params = [];
             const whereConditions = [];
             let paramIndex = 1;
-            
-            // Aplicar filtros
+
+            // Aplicar filtros melhorados
             if (filters.curso) {
                 whereConditions.push(isProduction ? `curso = $${paramIndex++}` : 'curso = ?');
                 params.push(filters.curso);
             }
-            
+
             if (filters.status) {
                 whereConditions.push(isProduction ? `status = $${paramIndex++}` : 'status = ?');
                 params.push(filters.status);
             }
-            
+
+            if (filters.tipo_lead) {
+                whereConditions.push(isProduction ? `tipo_lead = $${paramIndex++}` : 'tipo_lead = ?');
+                params.push(filters.tipo_lead);
+            }
+
+            if (filters.dia_evento) {
+                whereConditions.push(isProduction ? `dia_evento = $${paramIndex++}` : 'dia_evento = ?');
+                params.push(filters.dia_evento);
+            }
+
             if (filters.data_inicio) {
                 if (isProduction) {
                     whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') >= $${paramIndex++}`);
@@ -394,7 +404,7 @@ class Lead {
                 }
                 params.push(filters.data_inicio);
             }
-            
+
             if (filters.data_fim) {
                 if (isProduction) {
                     whereConditions.push(`DATE(data_criacao AT TIME ZONE 'America/Sao_Paulo') <= $${paramIndex++}`);
@@ -403,28 +413,28 @@ class Lead {
                 }
                 params.push(filters.data_fim);
             }
-            
+
             if (filters.search) {
                 if (isProduction) {
-                    whereConditions.push(`(nome ILIKE $${paramIndex} OR email ILIKE $${paramIndex + 1})`);
-                    params.push(`%${filters.search}%`, `%${filters.search}%`);
-                    paramIndex += 2;
+                    whereConditions.push(`(nome ILIKE $${paramIndex} OR email ILIKE $${paramIndex + 1} OR telefone ILIKE $${paramIndex + 2})`);
+                    params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
+                    paramIndex += 3;
                 } else {
-                    whereConditions.push('(nome LIKE ? OR email LIKE ?)');
-                    params.push(`%${filters.search}%`, `%${filters.search}%`);
+                    whereConditions.push('(nome LIKE ? OR email LIKE ? OR telefone LIKE ?)');
+                    params.push(`%${filters.search}%`, `%${filters.search}%`, `%${filters.search}%`);
                 }
             }
-            
+
             // Adicionar WHERE se há condições
             if (whereConditions.length > 0) {
                 const whereClause = ' WHERE ' + whereConditions.join(' AND ');
                 selectQuery += whereClause;
                 countQuery += whereClause;
             }
-            
-            // Ordenação
-            selectQuery += ' ORDER BY data_criacao DESC';
-            
+
+            // Ordenação melhorada - mais recentes primeiro
+            selectQuery += ' ORDER BY data_criacao DESC, id DESC';
+
             // Paginação
             if (isProduction) {
                 selectQuery += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
@@ -432,25 +442,33 @@ class Lead {
                 selectQuery += ' LIMIT ? OFFSET ?';
             }
             const queryParams = [...params, limit, offset];
-            
+
+            console.log(`📄 Executando query de leads - Página: ${page}, Filtros aplicados: ${whereConditions.length}`);
+
             // Executar queries
             const [leads, countResult] = await Promise.all([
                 dbAllQuery(selectQuery, queryParams),
                 dbGetQuery(countQuery, params)
             ]);
-            
+
+            const totalRecords = parseInt(countResult.total) || 0;
+            const totalPages = Math.ceil(totalRecords / limit);
+
             return {
-                leads: leads,
+                leads: leads || [],
                 pagination: {
-                    page: page,
+                    currentPage: page,
+                    totalPages: totalPages,
+                    totalRecords: totalRecords,
                     limit: limit,
-                    total: parseInt(countResult.total),
-                    totalPages: Math.ceil(parseInt(countResult.total) / limit)
+                    hasNextPage: page < totalPages,
+                    hasPrevPage: page > 1,
+                    offset: offset
                 }
             };
-            
+
         } catch (error) {
-            console.error('Erro ao listar leads:', error);
+            console.error('❌ Erro ao listar leads:', error);
             throw error;
         }
     }

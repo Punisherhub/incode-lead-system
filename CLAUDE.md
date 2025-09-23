@@ -48,6 +48,8 @@ node backend/database/update-schema.js        # Update SQLite schema with new wo
 node backend/database/migrate-postgres.js     # Update PostgreSQL schema with new workshop fields (production)
 node backend/database/init-postgres.js        # Initialize PostgreSQL database manually
 node backend/database/init-postgres-auto.js   # Auto-initialize PostgreSQL database
+node backend/database/clean-for-production.js # Clean all data and prepare database for production
+node backend/database/test-postgres.js        # Test PostgreSQL connection and system readiness
 npm run migrate:postgres                       # Run PostgreSQL migrations (production)
 npm run init:postgres                          # Initialize PostgreSQL database (production)
 ```

@@ -918,7 +918,7 @@
             border-radius: 10px;
             padding: 15px;
         }
-        
+
         .lead-item {
             display: flex;
             justify-content: space-between;
@@ -929,15 +929,104 @@
             border-radius: 8px;
             font-size: 0.9rem;
         }
-        
+
         .lead-name {
             font-weight: 600;
             color: #ffffff;
         }
-        
+
         .lead-info {
             color: rgba(255, 255, 255, 0.7);
             font-size: 0.8rem;
+        }
+
+        /* Estilos de Paginação */
+        .pagination-container {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .pagination-info {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: rgba(0, 212, 255, 0.2);
+            border-color: #00d4ff;
+            transform: translateY(-1px);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-btn.active {
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: #000;
+            border-color: #00d4ff;
+            font-weight: bold;
+        }
+
+        .pagination-numbers {
+            display: flex;
+            gap: 5px;
+        }
+
+        .pagination-size {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .pagination-container {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .pagination-controls {
+                order: 2;
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .pagination-info {
+                order: 1;
+            }
+
+            .pagination-size {
+                order: 3;
+            }
         }
     </style>
 </head>
@@ -1086,13 +1175,23 @@
         </div>
         
         <div class="controls">
-            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar por nome ou email...">
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 Buscar por nome, email ou telefone...">
             <select class="filter-select" id="courseFilter">
                 <option value="">📚 Todos os cursos</option>
             </select>
+            <select class="filter-select" id="typeFilter">
+                <option value="">👥 Todos os tipos</option>
+                <option value="geral">Captação Geral</option>
+                <option value="workshop">Workshop/Evento</option>
+            </select>
+            <select class="filter-select" id="dayFilter">
+                <option value="">📅 Todos os dias</option>
+                <option value="17">Dia 17</option>
+                <option value="18">Dia 18</option>
+            </select>
             <div style="display: flex; gap: 10px; align-items: center;">
                 <button class="refresh-btn" id="refreshBtn">🔄 Atualizar Dados</button>
-                <button class="refresh-btn" id="exportBtn" style="background: linear-gradient(45deg, #28a745, #20c997); border: 1px solid #28a745;">📊 Exportar Excel</button>
+                <button class="refresh-btn" id="exportBtn" style="background: linear-gradient(45deg, #28a745, #20c997); border: 1px solid #28a745;">📊 Exportar CSV</button>
             </div>
         </div>
         
@@ -1112,6 +1211,29 @@
                 <div class="loading">Carregando leads</div>
             </div>
         </div>
+
+        <!-- Paginação -->
+        <div class="pagination-container" id="paginationContainer" style="display: none;">
+            <div class="pagination-info">
+                <span id="paginationInfo">Mostrando 0 de 0 leads</span>
+            </div>
+            <div class="pagination-controls">
+                <button class="pagination-btn" id="firstPageBtn">« Primeira</button>
+                <button class="pagination-btn" id="prevPageBtn">‹ Anterior</button>
+                <div class="pagination-numbers" id="paginationNumbers"></div>
+                <button class="pagination-btn" id="nextPageBtn">Próxima ›</button>
+                <button class="pagination-btn" id="lastPageBtn">Última »</button>
+            </div>
+            <div class="pagination-size">
+                <label for="pageSizeSelect">Itens por página:</label>
+                <select id="pageSizeSelect" class="filter-select" style="width: auto;">
+                    <option value="10">10</option>
+                    <option value="20" selected>20</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1122,6 +1244,12 @@
         let allLeads = [];
         let filteredLeads = [];
         let isLoggedIn = false;
+
+        // Variáveis de paginação
+        let currentPage = 1;
+        let totalPages = 1;
+        let totalRecords = 0;
+        let currentFilters = {};
         
         // Configuração de modo
         let currentMode = 'general';
@@ -1163,28 +1291,57 @@
             }
         }
         
-        // Função para carregar leads
-        async function loadLeads() {
+        // Função para carregar leads com paginação
+        async function loadLeads(page = 1, resetFilters = false) {
             try {
                 leadsContainer.innerHTML = '<div class="loading">Carregando leads</div>';
-                
-                const response = await fetch(`${API_BASE}/leads?limit=100`);
+
+                // Se resetando filtros, limpar filtros atuais
+                if (resetFilters) {
+                    currentFilters = {};
+                    searchBox.value = '';
+                    courseFilter.value = '';
+                    document.getElementById('typeFilter').value = '';
+                    document.getElementById('dayFilter').value = '';
+                }
+
+                // Obter tamanho da página
+                const pageSize = parseInt(document.getElementById('pageSizeSelect').value) || 20;
+
+                // Construir URL com filtros
+                const params = new URLSearchParams({
+                    page: page,
+                    limit: pageSize,
+                    ...currentFilters
+                });
+
+                console.log('📄 Carregando leads - Página:', page, 'Filtros:', currentFilters);
+
+                const response = await fetch(`${API_BASE}/leads?${params}`);
                 const data = await response.json();
-                
+
                 if (data.success) {
                     allLeads = data.data;
                     filteredLeads = [...allLeads];
+
+                    // Atualizar variáveis de paginação
+                    currentPage = data.pagination.currentPage;
+                    totalPages = data.pagination.totalPages;
+                    totalRecords = data.pagination.totalRecords;
+
                     renderLeads();
+                    updatePagination();
                 } else {
                     throw new Error(data.error || 'Erro desconhecido');
                 }
             } catch (error) {
-                console.error('Erro ao carregar leads:', error);
+                console.error('❌ Erro ao carregar leads:', error);
                 leadsContainer.innerHTML = `
                     <div class="error-message">
                         ❌ Erro ao carregar leads: ${error.message}
                     </div>
                 `;
+                document.getElementById('paginationContainer').style.display = 'none';
             }
         }
         
@@ -1288,30 +1445,96 @@
             }
         }
 
-        // Função de busca
-        function filterLeads() {
-            const searchTerm = searchBox.value.toLowerCase();
+        // Função para aplicar filtros
+        function applyFilters() {
+            // Coletar valores dos filtros
+            const newFilters = {};
+
+            const searchTerm = searchBox.value.trim();
+            if (searchTerm) newFilters.search = searchTerm;
+
             const selectedCourse = courseFilter.value;
-            
-            filteredLeads = allLeads.filter(lead => {
-                const matchesSearch = !searchTerm || 
-                    lead.nome.toLowerCase().includes(searchTerm) ||
-                    lead.email.toLowerCase().includes(searchTerm);
-                    
-                const matchesCourse = !selectedCourse || lead.curso === selectedCourse;
-                
-                return matchesSearch && matchesCourse;
-            });
-            
-            renderLeads();
+            if (selectedCourse) newFilters.curso = selectedCourse;
+
+            const selectedType = document.getElementById('typeFilter').value;
+            if (selectedType) newFilters.tipo_lead = selectedType;
+
+            const selectedDay = document.getElementById('dayFilter').value;
+            if (selectedDay) newFilters.dia_evento = selectedDay;
+
+            // Atualizar filtros atuais
+            currentFilters = newFilters;
+
+            // Recarregar dados da primeira página
+            loadLeads(1);
+        }
+
+        // Debounce para pesquisa
+        let searchTimeout;
+        function debounceSearch() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(applyFilters, 500);
         }
         
-        // Event listeners
-        searchBox.addEventListener('input', filterLeads);
-        courseFilter.addEventListener('change', filterLeads);
+        // Função para atualizar paginação
+        function updatePagination() {
+            const paginationContainer = document.getElementById('paginationContainer');
+            const paginationInfo = document.getElementById('paginationInfo');
+            const paginationNumbers = document.getElementById('paginationNumbers');
+
+            if (totalRecords === 0) {
+                paginationContainer.style.display = 'none';
+                return;
+            }
+
+            paginationContainer.style.display = 'flex';
+
+            // Atualizar informações
+            const startItem = ((currentPage - 1) * parseInt(document.getElementById('pageSizeSelect').value)) + 1;
+            const endItem = Math.min(currentPage * parseInt(document.getElementById('pageSizeSelect').value), totalRecords);
+            paginationInfo.textContent = `Mostrando ${startItem}-${endItem} de ${totalRecords} leads`;
+
+            // Atualizar botões de navegação
+            document.getElementById('firstPageBtn').disabled = currentPage === 1;
+            document.getElementById('prevPageBtn').disabled = currentPage === 1;
+            document.getElementById('nextPageBtn').disabled = currentPage === totalPages;
+            document.getElementById('lastPageBtn').disabled = currentPage === totalPages;
+
+            // Atualizar números das páginas
+            paginationNumbers.innerHTML = '';
+            const maxButtons = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+
+            if (endPage - startPage + 1 < maxButtons) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = `pagination-btn ${i === currentPage ? 'active' : ''}`;
+                btn.textContent = i;
+                btn.onclick = () => loadLeads(i);
+                paginationNumbers.appendChild(btn);
+            }
+        }
+
+        // Event listeners melhorados
+        searchBox.addEventListener('input', debounceSearch);
+        courseFilter.addEventListener('change', applyFilters);
+        document.getElementById('typeFilter').addEventListener('change', applyFilters);
+        document.getElementById('dayFilter').addEventListener('change', applyFilters);
+        document.getElementById('pageSizeSelect').addEventListener('change', () => loadLeads(1));
+
+        // Event listeners de paginação
+        document.getElementById('firstPageBtn').addEventListener('click', () => loadLeads(1));
+        document.getElementById('prevPageBtn').addEventListener('click', () => loadLeads(Math.max(1, currentPage - 1)));
+        document.getElementById('nextPageBtn').addEventListener('click', () => loadLeads(Math.min(totalPages, currentPage + 1)));
+        document.getElementById('lastPageBtn').addEventListener('click', () => loadLeads(totalPages));
+
         refreshBtn.addEventListener('click', () => {
             loadStats();
-            loadLeads();
+            loadLeads(currentPage, true); // Reset filtros ao atualizar
         });
 
         // Event listener para exportar leads
@@ -1335,7 +1558,12 @@
                     const url = window.URL.createObjectURL(blob);
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = `leads_incode_${new Date().toISOString().split('T')[0]}.csv`;
+
+                    // Nome do arquivo será definido pelo backend via Content-Disposition
+                    // Mas definir fallback para compatibilidade
+                    const dataAtual = new Date().toLocaleDateString('pt-BR').replace(/\//g, '-');
+                    a.download = `Leads_Incode_Academy_${dataAtual}.csv`;
+
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
@@ -1370,7 +1598,7 @@
         setInterval(() => {
             if (isLoggedIn) {
                 loadStats();
-                loadLeads();
+                loadLeads(currentPage); // Manter a página atual
             }
         }, 30000);
         
@@ -1399,7 +1627,7 @@
             
             // Carregar dados
             loadStats();
-            loadLeads();
+            loadLeads(1, true); // Começar da página 1 com filtros limpos
             loadSiteConfig();
         }
         

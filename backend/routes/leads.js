@@ -115,36 +115,50 @@ router.post('/', async (req, res) => {
     }
 });
 
-// GET /api/leads - Listar leads (com paginação e filtros)
+// GET /api/leads - Listar leads (com paginação e filtros melhorados)
 router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 50;
-        
-        // Filtros opcionais
+        const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Máximo 100 por página
+
+        // Filtros opcionais melhorados
         const filters = {};
-        if (req.query.curso) filters.curso = req.query.curso;
-        if (req.query.status) filters.status = req.query.status;
-        if (req.query.data_inicio) filters.data_inicio = req.query.data_inicio;
-        if (req.query.data_fim) filters.data_fim = req.query.data_fim;
-        if (req.query.search) filters.search = req.query.search;
-        
+        if (req.query.curso && req.query.curso !== '') filters.curso = req.query.curso;
+        if (req.query.status && req.query.status !== '') filters.status = req.query.status;
+        if (req.query.tipo_lead && req.query.tipo_lead !== '') filters.tipo_lead = req.query.tipo_lead;
+        if (req.query.dia_evento && req.query.dia_evento !== '') filters.dia_evento = req.query.dia_evento;
+        if (req.query.data_inicio && req.query.data_inicio !== '') filters.data_inicio = req.query.data_inicio;
+        if (req.query.data_fim && req.query.data_fim !== '') filters.data_fim = req.query.data_fim;
+        if (req.query.search && req.query.search.trim() !== '') {
+            filters.search = req.query.search.trim();
+        }
+
+        console.log(`📊 Listando leads - Página: ${page}, Limite: ${limit}, Filtros:`, filters);
+
         const result = await Lead.findAll(page, limit, filters);
-        
+
         res.json({
             success: true,
             data: result.leads,
-            pagination: result.pagination,
+            pagination: {
+                currentPage: result.pagination.currentPage,
+                totalPages: result.pagination.totalPages,
+                totalRecords: result.pagination.totalRecords,
+                limit: result.pagination.limit,
+                hasNextPage: result.pagination.hasNextPage,
+                hasPrevPage: result.pagination.hasPrevPage
+            },
             filters: filters,
             timestamp: getBrazilTimestamp()
         });
-        
+
     } catch (error) {
         console.error('❌ Erro ao listar leads:', error);
         res.status(500).json({
             success: false,
             error: 'Erro ao carregar leads',
-            code: 'LEADS_FETCH_ERROR'
+            code: 'LEADS_FETCH_ERROR',
+            details: error.message
         });
     }
 });
