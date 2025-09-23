@@ -1107,21 +1107,17 @@
             
             async loadParticipants() {
                 try {
-                    // Carregar TODOS os leads para mega eventos - limite alto
-                    const response = await fetch('/api/leads?limit=10000');
+                    // Carregar TODOS os leads usando API de sorteio (SEM LIMITE!)
+                    const response = await fetch('/api/leads/sorteio?periodo=todos&tipo=todos');
                     if (!response.ok) throw new Error('Erro ao carregar participantes');
-                    
+
                     const data = await response.json();
 
-                    console.log('🔍 Dados recebidos da API:', data);
-                    console.log('📊 Total na API:', data.pagination?.total || 'desconhecido');
+                    console.log('🔍 Dados recebidos da API de sorteio:', data);
+                    console.log('📊 Total de leads encontrados:', data.total || 'desconhecido');
 
-                    // A API retorna um objeto com 'leads' ou pode retornar array diretamente
-                    if (data.success && data.leads) {
-                        this.participants = data.leads;
-                    } else if (Array.isArray(data)) {
-                        this.participants = data;
-                    } else if (data.data && Array.isArray(data.data)) {
+                    // API de sorteio retorna sempre data.data como array
+                    if (data.success && Array.isArray(data.data)) {
                         this.participants = data.data;
                     } else {
                         this.participants = [];
